@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\OvertureQR\overture_qr_scouting\build\windows\x64\CMakeFiles\efc0020602318a6c71ae547b35cc992c\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{D4F3DEF4-7676-3F1B-999F-FF150B08665F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,11 @@
+C:/OvertureQR/overture_qr_scouting/build/windows/x64/runner/Release/data/icudtl.dat
+C:/OvertureQR/overture_qr_scouting/build/windows/x64/runner/Release/flutter_windows.dll
+C:/OvertureQR/overture_qr_scouting/build/windows/x64/runner/Release/data/flutter_assets/AssetManifest.bin
+C:/OvertureQR/overture_qr_scouting/build/windows/x64/runner/Release/data/flutter_assets/AssetManifest.bin.json
+C:/OvertureQR/overture_qr_scouting/build/windows/x64/runner/Release/data/flutter_assets/AssetManifest.json
+C:/OvertureQR/overture_qr_scouting/build/windows/x64/runner/Release/data/flutter_assets/FontManifest.json
+C:/OvertureQR/overture_qr_scouting/build/windows/x64/runner/Release/data/flutter_assets/fonts/MaterialIcons-Regular.otf
+C:/OvertureQR/overture_qr_scouting/build/windows/x64/runner/Release/data/flutter_assets/NOTICES
+C:/OvertureQR/overture_qr_scouting/build/windows/x64/runner/Release/data/flutter_assets/NOTICES.Z
+C:/OvertureQR/overture_qr_scouting/build/windows/x64/runner/Release/data/flutter_assets/shaders/ink_sparkle.frag
+C:/OvertureQR/overture_qr_scouting/build/windows/x64/runner/Release/data/app.so

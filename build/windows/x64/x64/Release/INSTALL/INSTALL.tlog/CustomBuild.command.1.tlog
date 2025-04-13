@@ -1,0 +1,10 @@
+^C:\OVERTUREQR\OVERTURE_QR_SCOUTING\BUILD\WINDOWS\X64\CMAKEFILES\EFC0020602318A6C71AE547B35CC992C\INSTALL_FORCE.RULE
+setlocal
+cd .
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
