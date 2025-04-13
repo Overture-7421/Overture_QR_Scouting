@@ -54,3 +54,5 @@ You need to have the [Flutter SDK](https://flutter.dev/docs/get-started/install)
     The output files will be located in the `build` directory within your project folder.
 
 ## Screenshots
+![Screenshot 2025-04-13 143318](https://github.com/user-attachments/assets/5c409612-1a39-4e35-b55c-bf32726c68dd)
+![Screenshot 2025-04-13 143308](https://github.com/user-attachments/assets/c017fdba-d3de-4d28-a080-4c57b6df0f5b)
