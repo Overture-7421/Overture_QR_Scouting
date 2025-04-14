@@ -1,5 +1,5 @@
 # Overture Reefscape QR Scouting App
-.
+
 ## Overview
 
 This is a Flutter-based scouting application designed for the FIRST Robotics Competition (FRC) game "Overture Reefscape" (Note: This seems to be a hypothetical game name, adjust if needed). The app provides a user-friendly interface for collecting match data during competitions and generates a QR code containing all the gathered information for easy transfer and analysis.
