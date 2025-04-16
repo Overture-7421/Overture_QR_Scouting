@@ -2,13 +2,13 @@
 
 ## Overview
 
-This is a Flutter-based scouting application designed for the FIRST Robotics Competition (FRC) game "Overture Reefscape" (Note: This seems to be a hypothetical game name, adjust if needed). The app provides a user-friendly interface for collecting match data during competitions and generates a QR code containing all the gathered information for easy transfer and analysis.
+This is a Flutter-based scouting application designed for the FIRST Robotics Competition (FRC) game "Reefscape". The app provides a user-friendly interface for collecting match data during competitions and generates a QR code containing all the gathered information for easy transfer and analysis.
 
 The primary goal is to streamline the scouting process by allowing scouters to quickly input data on a mobile device or desktop and then generate a scannable QR code or copy the data directly.
 
 ## Features
 
-*   **Cross-Platform:** Built with Flutter, enabling compilation for Android, iOS, Windows, macOS, and Linux (Web support might also be possible with adjustments).
+*   **Cross-Platform:** Built with Flutter, enabling compilation for Android, iOS, Windows, macOS, Linux and Web.
 *   **Structured Data Entry:** Divides scouting data into logical sections:
     *   **Prematch:** Scouter Initials, Match Number, Robot Selection, Alliance Info, Team Number, Starting Position, No Show status.
     *   **Autonomous:** Moved status, Coral Scoring (Levels 1-4), Algae Scoring (Barge/Processor), Dislodged Algae, Auto Fouls.
