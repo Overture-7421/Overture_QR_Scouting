@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Import QR package
 import 'package:flutter/services.dart'; // Import for Clipboard
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:file_picker/file_picker.dart';
 
 void main() {
   runApp(const ScoutingApp());
@@ -85,97 +88,225 @@ class ScoutingHomePage extends StatefulWidget {
   State<ScoutingHomePage> createState() => _ScoutingHomePageState();
 }
 
+class _FieldConfig {
+  final String type;
+  final String label;
+  final String key;
+  final List<String>? options;
+  _FieldConfig({required this.type, required this.label, required this.key, this.options});
+
+  factory _FieldConfig.fromJson(Map<String, dynamic> json) {
+    return _FieldConfig(
+      type: json['type'],
+      label: json['label'],
+      key: json['key'],
+      options: json['options'] != null ? List<String>.from(json['options']) : null,
+    );
+  }
+}
+
+class _SectionConfig {
+  final String title;
+  final List<_FieldConfig> fields;
+  _SectionConfig({required this.title, required this.fields});
+
+  factory _SectionConfig.fromJson(Map<String, dynamic> json) {
+    return _SectionConfig(
+      title: json['title'],
+      fields: (json['fields'] as List).map((f) => _FieldConfig.fromJson(f)).toList(),
+    );
+  }
+}
+
 class _ScoutingHomePageState extends State<ScoutingHomePage> {
   // --- State Variables ---
+  Map<String, dynamic> _formData = {};
+  List<_SectionConfig> _sections = [];
+  bool _configLoaded = false;
 
-  // Prematch
-  final TextEditingController _scouterInitialsController = TextEditingController();
-  final TextEditingController _matchNumberController = TextEditingController();
-  String? _robotValue = 'Blue 1'; // Default value
-  bool _futureAlliance = false;
-  final TextEditingController _teamNumberController = TextEditingController();
-  String? _startingPosition = 'Middle'; // Default value
-  bool _noShow = false;
+  // Controllers for text fields
+  final Map<String, TextEditingController> _controllers = {};
 
-  // Autonomous
-  bool _moved = false;
-  int _coralL1Auto = 0;
-  int _coralL2Auto = 0;
-  int _coralL3Auto = 0;
-  int _coralL4Auto = 0;
-  int _bargeAlgaeAuto = 0;
-  int _processorAlgaeAuto = 0;
-  bool _dislodgedAlgaeAuto = false; // Assuming this toggle is for Auto
-  int _autoFoul = 0;
+  @override
+  void initState() {
+    super.initState();
+    _loadConfig();
+  }
 
-  // Teleop
-  bool _dislodgedAlgaeTeleop = false;
-  String? _pickupLocation = 'Ground'; // Default value
-  int _coralL1Teleop = 0;
-  int _coralL2Teleop = 0;
-  int _coralL3Teleop = 0;
-  int _coralL4Teleop = 0;
-  int _bargeAlgaeTeleop = 0;
-  int _processorAlgaeTeleop = 0;
-  bool _crossedFieldDefense = false;
-  bool _tippedFell = false;
-  int _touchedOpposingCage = 0;
-  bool _died = false;
+  Future<void> _loadConfig() async {
+    final String configString = await rootBundle.loadString('lib/config.json');
+    final Map<String, dynamic> configJson = json.decode(configString);
+    final List<_SectionConfig> sections = (configJson['sections'] as List)
+        .map((s) => _SectionConfig.fromJson(s))
+        .toList();
+    setState(() {
+      _sections = sections;
+      for (final section in _sections) {
+        for (final field in section.fields) {
+          if (field.type == 'text' || field.type == 'number') {
+            _controllers[field.key] = TextEditingController();
+          }
+          // Set default values
+          if (field.type == 'dropdown' && field.options != null && field.options!.isNotEmpty) {
+            _formData[field.key] = field.options![0];
+          } else if (field.type == 'switch') {
+            _formData[field.key] = false;
+          } else if (field.type == 'counter') {
+            _formData[field.key] = 0;
+          }
+        }
+      }
+      _configLoaded = true;
+    });
+  }
 
-  // Endgame
-  String? _endPosition = 'Shallow Climb'; // Default value
-  bool _broke = false;
-  bool _defended = false;
-  bool _coralHpMistake = false;
-  String? _yellowRedCard = 'None'; // Default value
+  Future<void> _pickAndLoadConfig() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['json']);
+    if (result != null && result.files.single.bytes != null) {
+      try {
+        final String configString = String.fromCharCodes(result.files.single.bytes!);
+        final Map<String, dynamic> configJson = json.decode(configString);
+        final List<_SectionConfig> sections = (configJson['sections'] as List)
+            .map((s) => _SectionConfig.fromJson(s))
+            .toList();
+        setState(() {
+          _sections = sections;
+          _controllers.clear();
+          _formData.clear();
+          for (final section in _sections) {
+            for (final field in section.fields) {
+              if (field.type == 'text' || field.type == 'number') {
+                _controllers[field.key] = TextEditingController();
+              }
+              if (field.type == 'dropdown' && field.options != null && field.options!.isNotEmpty) {
+                _formData[field.key] = field.options![0];
+              } else if (field.type == 'switch') {
+                _formData[field.key] = false;
+              } else if (field.type == 'counter') {
+                _formData[field.key] = 0;
+              }
+            }
+          }
+          _configLoaded = true;
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load config: $e')),
+        );
+      }
+    }
+  }
 
-  // Dropdown options (adjust as needed)
-  final List<String> _robotOptions = ['Blue 1', 'Blue 2', 'Blue 3', 'Red 1', 'Red 2', 'Red 3'];
-  final List<String> _startPositionOptions = ['Processor Side', 'Middle', 'No-Processor Side'];
-  final List<String> _pickupLocationOptions = ['Ground', 'Source', 'Both'];
-  final List<String> _endPositionOptions = ['None', 'Parked', 'Shallow Climb', 'Deep Climb'];
-  final List<String> _cardOptions = ['None', 'Yellow Card', 'Red Card'];
+  Widget _buildField(_FieldConfig field) {
+    switch (field.type) {
+      case 'text':
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          child: TextField(
+            controller: _controllers[field.key],
+            decoration: InputDecoration(
+              labelText: field.label,
+              contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
+            ),
+            onChanged: (val) => _formData[field.key] = val,
+          ),
+        );
+      case 'number':
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          child: TextField(
+            controller: _controllers[field.key],
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: field.label,
+              contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
+            ),
+            onChanged: (val) => _formData[field.key] = val,
+          ),
+        );
+      case 'dropdown':
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: field.label,
+              border: const OutlineInputBorder(),
+              contentPadding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 12.0),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _formData[field.key],
+                isExpanded: true,
+                items: field.options!.map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (val) => setState(() => _formData[field.key] = val),
+              ),
+            ),
+          ),
+        );
+      case 'switch':
+        return SwitchListTile(
+          title: Text(field.label),
+          value: _formData[field.key] ?? false,
+          onChanged: (val) => setState(() => _formData[field.key] = val),
+          contentPadding: EdgeInsets.zero,
+        );
+      case 'counter':
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: field.label,
+              border: const OutlineInputBorder(),
+              contentPadding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 12.0),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Spacer(),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle_outline),
+                      onPressed: (_formData[field.key] ?? 0) > 0
+                          ? () => setState(() => _formData[field.key] = (_formData[field.key] ?? 0) - 1)
+                          : null,
+                      color: (_formData[field.key] ?? 0) > 0 ? Colors.redAccent : Colors.grey,
+                      constraints: const BoxConstraints(),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      tooltip: 'Decrease',
+                    ),
+                    SizedBox(
+                      width: 30,
+                      child: Text(
+                        '${_formData[field.key] ?? 0}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline),
+                      onPressed: () => setState(() => _formData[field.key] = (_formData[field.key] ?? 0) + 1),
+                      color: Colors.greenAccent,
+                      constraints: const BoxConstraints(),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      tooltip: 'Increase',
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
 
-  // Define column headers in the correct order
-  static const List<String> _columnHeaders = [
-    'Scouter Initials',
-    'Match Number',
-    'Robot',
-    'Future Alliance',
-    'Team Number',
-    'Starting Position',
-    'No Show',
-    'Moved (Auto)',
-    'Coral L1 (Auto)',
-    'Coral L2 (Auto)',
-    'Coral L3 (Auto)',
-    'Coral L4 (Auto)',
-    'Barge Algae (Auto)',
-    'Processor Algae (Auto)',
-    'Dislodged Algae (Auto)',
-    'Foul (Auto)',
-    'Dislodged Algae (Teleop)',
-    'Pickup Location',
-    'Coral L1 (Teleop)',
-    'Coral L2 (Teleop)',
-    'Coral L3 (Teleop)',
-    'Coral L4 (Teleop)',
-    'Barge Algae (Teleop)',
-    'Processor Algae (Teleop)',
-    'Crossed Field/Defense',
-    'Tipped/Fell',
-    'Touched Opposing Cage',
-    'Died',
-    'End Position',
-    'Broke',
-    'Defended',
-    'Coral HP Mistake',
-    'Yellow/Red Card',
-  ];
-
-  // --- Helper Functions ---
-
-  // Builds a section card with a title
   Widget _buildSectionCard(String title, List<Widget> children) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5.0),
@@ -193,193 +324,53 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
               ),
             ),
             const SizedBox(height: 10),
-            ...children, // Spread operator to insert list elements
+            ...children,
           ],
         ),
       ),
     );
   }
-
-  // Builds a text input field
-  Widget _buildTextField(String label, TextEditingController controller, {TextInputType keyboardType = TextInputType.text}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          labelText: label,
-          contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
-        ),
-      ),
-    );
-  }
-
-  // Builds a dropdown field
-  Widget _buildDropdownField(String label, String? currentValue, List<String> options, ValueChanged<String?> onChanged) {
-     return Padding(
-       padding: const EdgeInsets.symmetric(vertical: 6.0),
-       child: InputDecorator(
-         decoration: InputDecoration(
-           labelText: label,
-           border: const OutlineInputBorder(),
-           contentPadding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 12.0),
-         ),
-         child: DropdownButtonHideUnderline(
-           child: DropdownButton<String>(
-             value: currentValue,
-             isExpanded: true,
-             items: options.map<DropdownMenuItem<String>>((String value) {
-               return DropdownMenuItem<String>(
-                 value: value,
-                 child: Text(value),
-               );
-             }).toList(),
-             onChanged: onChanged,
-             // Adding dropdown specific styling if needed, otherwise relies on theme
-             // style: TextStyle(color: Colors.white),
-             // dropdownColor: const Color(0xFF2A2A2A),
-           ),
-         ),
-       ),
-     );
-   }
-
-  // Builds a switch tile
-  Widget _buildSwitchTile(String title, bool value, ValueChanged<bool> onChanged) {
-    return SwitchListTile(
-      title: Text(title),
-      value: value,
-      onChanged: onChanged,
-      contentPadding: EdgeInsets.zero,
-      // Active track color defined in theme
-      // activeColor: Colors.deepPurpleAccent, // Thumb color defined in theme
-    );
-  }
-
-  // Builds a counter field
-  Widget _buildCounterField(String label, int currentValue, VoidCallback onDecrement, VoidCallback onIncrement) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
-      child: InputDecorator(
-         decoration: InputDecoration(
-           labelText: label,
-           border: const OutlineInputBorder(),
-           contentPadding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 12.0),
-         ),
-         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Flexible prevents overflow if label is too long
-            // Flexible(child: Text(label, style: const TextStyle(fontSize: 16))),
-            const Spacer(), // Push counter to the right
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.remove_circle_outline),
-                  onPressed: currentValue > 0 ? onDecrement : null, // Disable if 0
-                  color: currentValue > 0 ? Colors.redAccent : Colors.grey,
-                  constraints: const BoxConstraints(), // Remove extra padding
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  tooltip: 'Decrease',
-                ),
-                SizedBox(
-                  width: 30, // Fixed width for the number
-                  child: Text(
-                    '$currentValue',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline),
-                  onPressed: onIncrement,
-                  color: Colors.greenAccent,
-                   constraints: const BoxConstraints(),
-                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                   tooltip: 'Increase',
-                ),
-              ],
-            ),
-          ],
-                 ),
-       ),
-    );
-  }
-
-  // --- Data Handling ---
 
   void _commitData() {
-    // 1. Gather all data points IN ORDER
-    final List<String> data = [
-      // Prematch
-      _scouterInitialsController.text,
-      _matchNumberController.text,
-      _robotValue ?? '',
-      _futureAlliance.toString(),
-      _teamNumberController.text,
-      _startingPosition ?? '',
-      _noShow.toString(),
-      // Autonomous
-      _moved.toString(),
-      _coralL1Auto.toString(),
-      _coralL2Auto.toString(),
-      _coralL3Auto.toString(),
-      _coralL4Auto.toString(),
-      _bargeAlgaeAuto.toString(),
-      _processorAlgaeAuto.toString(),
-      _dislodgedAlgaeAuto.toString(),
-      _autoFoul.toString(),
-      // Teleop
-      _dislodgedAlgaeTeleop.toString(),
-      _pickupLocation ?? '',
-      _coralL1Teleop.toString(),
-      _coralL2Teleop.toString(),
-      _coralL3Teleop.toString(),
-      _coralL4Teleop.toString(),
-      _bargeAlgaeTeleop.toString(),
-      _processorAlgaeTeleop.toString(),
-      _crossedFieldDefense.toString(),
-      _tippedFell.toString(),
-      _touchedOpposingCage.toString(),
-      _died.toString(),
-      // Endgame
-      _endPosition ?? '',
-      _broke.toString(),
-      _defended.toString(),
-      _coralHpMistake.toString(),
-      _yellowRedCard ?? '',
-    ];
-
-    // 2. Format as tab-separated string for QR, comma-separated for columns
-    final String qrData = data.join('\t'); // Use tab as separator for QR data
-    final String columnData = _columnHeaders.join(','); // Join headers with commas
-
-    // 3. Show QR Code in a dialog
+    // Gather all data points in order of config
+    final List<String> data = [];
+    final List<String> columnHeaders = [];
+    for (final section in _sections) {
+      for (final field in section.fields) {
+        columnHeaders.add(field.label);
+        if (field.type == 'text' || field.type == 'number') {
+          data.add(_controllers[field.key]?.text ?? '');
+        } else {
+          data.add(_formData[field.key]?.toString() ?? '');
+        }
+      }
+    }
+    final String qrData = data.join('\t');
+    final String columnData = columnHeaders.join(',');
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Scan QR Code'),
           content: SizedBox(
-            width: 250, // Adjust size as needed
+            width: 250,
             height: 250,
             child: QrImageView(
               data: qrData,
               version: QrVersions.auto,
               size: 250.0,
-              backgroundColor: Colors.white, // QR code background
-              foregroundColor: Colors.black, // QR code foreground
-              gapless: false, // Recommended for better scanability
-              errorCorrectionLevel: QrErrorCorrectLevel.M, // Medium error correction
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              gapless: false,
+              errorCorrectionLevel: QrErrorCorrectLevel.M,
             ),
           ),
           actions: <Widget>[
-             TextButton(
+            TextButton(
               child: const Text('Copy Info'),
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: qrData));
-                Navigator.of(context).pop(); // Close dialog after copying
+                Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('QR data copied to clipboard!')),
                 );
@@ -389,9 +380,9 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
               child: const Text('Copy Columns'),
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: columnData));
-                Navigator.of(context).pop(); // Close dialog after copying
+                Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Column names (CSV) copied to clipboard!')), // Updated message
+                  const SnackBar(content: Text('Column names (CSV) copied to clipboard!')),
                 );
               },
             ),
@@ -405,76 +396,54 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
         );
       },
     );
-     print("QR Data String:\n$qrData"); // Optional: Print for debugging
-     print("Column Headers String (CSV):\n$columnData"); // Optional: Print for debugging
+    print("QR Data String:\n$qrData");
+    print("Column Headers String (CSV):\n$columnData");
   }
 
   void _resetForm() {
     setState(() {
-      // Prematch - Keep Scouter Initials and Robot, Increment Match Number
-      // _scouterInitialsController.clear(); // Keep scouter initials
-      final currentMatchNumber = int.tryParse(_matchNumberController.text);
-      if (currentMatchNumber != null) {
-        _matchNumberController.text = (currentMatchNumber + 1).toString();
-      } else {
-        _matchNumberController.clear(); // Clear if not a valid number
+      for (final section in _sections) {
+        for (final field in section.fields) {
+          if (field.type == 'text' || field.type == 'number') {
+            _controllers[field.key]?.clear();
+          } else if (field.type == 'dropdown' && field.options != null && field.options!.isNotEmpty) {
+            _formData[field.key] = field.options![0];
+          } else if (field.type == 'switch') {
+            _formData[field.key] = false;
+          } else if (field.type == 'counter') {
+            _formData[field.key] = 0;
+          }
+        }
       }
-      // _robotValue = _robotOptions[0]; // Keep robot value
-      _futureAlliance = false;
-      _teamNumberController.clear();
-      _startingPosition = _startPositionOptions[1]; // Reset to Middle
-      _noShow = false;
-
-      // Autonomous
-      _moved = false;
-      _coralL1Auto = 0;
-      _coralL2Auto = 0;
-      _coralL3Auto = 0;
-      _coralL4Auto = 0;
-      _bargeAlgaeAuto = 0;
-      _processorAlgaeAuto = 0;
-      _dislodgedAlgaeAuto = false;
-      _autoFoul = 0;
-
-      // Teleop
-      _dislodgedAlgaeTeleop = false;
-      _pickupLocation = _pickupLocationOptions[0]; // Reset to Ground
-      _coralL1Teleop = 0;
-      _coralL2Teleop = 0;
-      _coralL3Teleop = 0;
-      _coralL4Teleop = 0;
-      _bargeAlgaeTeleop = 0;
-      _processorAlgaeTeleop = 0;
-      _crossedFieldDefense = false;
-      _tippedFell = false;
-      _touchedOpposingCage = 0;
-      _died = false;
-
-      // Endgame
-      _endPosition = _endPositionOptions[2]; // Reset to Shallow Climb
-      _broke = false;
-      _defended = false;
-      _coralHpMistake = false;
-      _yellowRedCard = _cardOptions[0]; // Reset to None
     });
   }
 
   @override
   void dispose() {
-    // Clean up the controllers when the widget is disposed.
-    _scouterInitialsController.dispose();
-    _matchNumberController.dispose();
-    _teamNumberController.dispose();
+    for (final controller in _controllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
-  // --- Build Method ---
   @override
   Widget build(BuildContext context) {
+    if (!_configLoaded) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
-        title: const Text('OVERTURE REEFSCAPE QR SCOUTING OFFICIAL'), // Title from image
+        title: const Text('OVERTURE REEFSCAPE QR SCOUTING OFFICIAL'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.folder_open),
+            tooltip: 'Load Config',
+            onPressed: _pickAndLoadConfig,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(10.0),
@@ -482,75 +451,33 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
           children: [
             // --- Sections ---
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start, // Align cards top
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Column 1: Prematch & Autonomous
                 Expanded(
                   child: Column(
-                    children: [
-                      // Prematch Section
-                      _buildSectionCard('PREMATCH', [
-                        _buildTextField('SCOUTER INITIALS', _scouterInitialsController),
-                        _buildTextField('MATCH NUMBER', _matchNumberController, keyboardType: TextInputType.number),
-                        _buildDropdownField('ROBOT', _robotValue, _robotOptions, (val) => setState(() => _robotValue = val)),
-                        _buildSwitchTile('FUTURE ALLIANCE IN QUALY?', _futureAlliance, (val) => setState(() => _futureAlliance = val)),
-                        _buildTextField('TEAM NUMBER', _teamNumberController, keyboardType: TextInputType.number),
-                        _buildDropdownField('STARTING POSITION', _startingPosition, _startPositionOptions, (val) => setState(() => _startingPosition = val)),
-                        _buildSwitchTile('NO SHOW', _noShow, (val) => setState(() => _noShow = val)),
-                      ]),
-
-                      // Autonomous Section
-                      _buildSectionCard('AUTONOMOUS', [
-                         _buildSwitchTile('MOVED?', _moved, (val) => setState(() => _moved = val)),
-                         _buildCounterField('CORAL L1 SCORED', _coralL1Auto, () => setState(() => _coralL1Auto--), () => setState(() => _coralL1Auto++)),
-                         _buildCounterField('CORAL L2 SCORED', _coralL2Auto, () => setState(() => _coralL2Auto--), () => setState(() => _coralL2Auto++)),
-                         _buildCounterField('CORAL L3 SCORED', _coralL3Auto, () => setState(() => _coralL3Auto--), () => setState(() => _coralL3Auto++)),
-                         _buildCounterField('CORAL L4 SCORED', _coralL4Auto, () => setState(() => _coralL4Auto--), () => setState(() => _coralL4Auto++)),
-                         _buildCounterField('BARGE ALGAE SCORED', _bargeAlgaeAuto, () => setState(() => _bargeAlgaeAuto--), () => setState(() => _bargeAlgaeAuto++)),
-                         _buildCounterField('PROCESSOR ALGAE SCORED', _processorAlgaeAuto, () => setState(() => _processorAlgaeAuto--), () => setState(() => _processorAlgaeAuto++)),
-                         _buildSwitchTile('DISLODGED ALGAE?', _dislodgedAlgaeAuto, (val) => setState(() => _dislodgedAlgaeAuto = val)), // Assuming this belongs here
-                         _buildCounterField('AUTO FOUL', _autoFoul, () => setState(() => _autoFoul--), () => setState(() => _autoFoul++)),
-                      ]),
-                    ],
+                    children: _sections
+                        .sublist(0, (_sections.length / 2).ceil())
+                        .map((section) => _buildSectionCard(
+                              section.title,
+                              section.fields.map(_buildField).toList(),
+                            ))
+                        .toList(),
                   ),
                 ),
-                const SizedBox(width: 10), // Spacing between columns
-
-                // Column 2: Teleop & Endgame
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
-                    children: [
-                      // Teleop Section
-                      _buildSectionCard('TELEOP', [
-                          _buildSwitchTile('DISLODGED ALGAE?', _dislodgedAlgaeTeleop, (val) => setState(() => _dislodgedAlgaeTeleop = val)), // Separate Teleop toggle
-                          _buildDropdownField('PICKUP LOCATION', _pickupLocation, _pickupLocationOptions, (val) => setState(() => _pickupLocation = val)),
-                          _buildCounterField('CORAL L1 SCORED', _coralL1Teleop, () => setState(() => _coralL1Teleop--), () => setState(() => _coralL1Teleop++)),
-                          _buildCounterField('CORAL L2 SCORED', _coralL2Teleop, () => setState(() => _coralL2Teleop--), () => setState(() => _coralL2Teleop++)),
-                          _buildCounterField('CORAL L3 SCORED', _coralL3Teleop, () => setState(() => _coralL3Teleop--), () => setState(() => _coralL3Teleop++)),
-                          _buildCounterField('CORAL L4 SCORED', _coralL4Teleop, () => setState(() => _coralL4Teleop--), () => setState(() => _coralL4Teleop++)),
-                          _buildCounterField('BARGE ALGAE SCORED', _bargeAlgaeTeleop, () => setState(() => _bargeAlgaeTeleop--), () => setState(() => _bargeAlgaeTeleop++)),
-                          _buildCounterField('PROCESSOR ALGAE SCORED', _processorAlgaeTeleop, () => setState(() => _processorAlgaeTeleop--), () => setState(() => _processorAlgaeTeleop++)),
-                          _buildSwitchTile('CROSSED FIELD/PLAYED DEFENSE?', _crossedFieldDefense, (val) => setState(() => _crossedFieldDefense = val)),
-                          _buildSwitchTile('TIPPED/FELL OVER?', _tippedFell, (val) => setState(() => _tippedFell = val)),
-                          _buildCounterField('TOUCHED OPPOSING CAGE', _touchedOpposingCage, () => setState(() => _touchedOpposingCage--), () => setState(() => _touchedOpposingCage++)),
-                          _buildSwitchTile('DIED?', _died, (val) => setState(() => _died = val)),
-                      ]),
-
-                      // Endgame Section
-                      _buildSectionCard('ENDGAME', [
-                        _buildDropdownField('END POSITION', _endPosition, _endPositionOptions, (val) => setState(() => _endPosition = val)),
-                        _buildSwitchTile('BROKE?', _broke, (val) => setState(() => _broke = val)),
-                        _buildSwitchTile('DEFENDED?', _defended, (val) => setState(() => _defended = val)),
-                        _buildSwitchTile('CORAL HP MISTAKE?', _coralHpMistake, (val) => setState(() => _coralHpMistake = val)),
-                        _buildDropdownField('YELLOW/RED CARD', _yellowRedCard, _cardOptions, (val) => setState(() => _yellowRedCard = val)),
-                      ]),
-                    ],
+                    children: _sections
+                        .sublist((_sections.length / 2).ceil())
+                        .map((section) => _buildSectionCard(
+                              section.title,
+                              section.fields.map(_buildField).toList(),
+                            ))
+                        .toList(),
                   ),
                 ),
               ],
             ),
-
-            // --- Action Buttons ---
             const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5.0),
@@ -565,21 +492,21 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                   Expanded(
-                     child: ElevatedButton.icon(
+                  Expanded(
+                    child: ElevatedButton.icon(
                       icon: const Icon(Icons.refresh),
                       label: const Text('Reset Form'),
                       onPressed: _resetForm,
-                       style: ElevatedButton.styleFrom(
+                      style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 15),
-                        backgroundColor: Colors.grey[700], // Different color for reset
+                        backgroundColor: Colors.grey[700],
                       ),
-                                     ),
-                   ),
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 20), // Bottom padding
+            const SizedBox(height: 20),
           ],
         ),
       ),
