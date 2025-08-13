@@ -4,6 +4,9 @@ import 'package:flutter/services.dart'; // Import for Clipboard
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:file_picker/file_picker.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   runApp(const ScoutingApp());
@@ -127,6 +130,11 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
   // Controllers for text fields
   final Map<String, TextEditingController> _controllers = {};
 
+  Future<File> _getUserConfigFile() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return File('${dir.path}/config.json');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -134,37 +142,65 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
   }
 
   Future<void> _loadConfig() async {
-    final String configString = await rootBundle.loadString('lib/config.json');
-    final Map<String, dynamic> configJson = json.decode(configString);
-    final List<_SectionConfig> sections = (configJson['sections'] as List)
-        .map((s) => _SectionConfig.fromJson(s))
-        .toList();
-    setState(() {
-      _sections = sections;
-      for (final section in _sections) {
-        for (final field in section.fields) {
-          if (field.type == 'text' || field.type == 'number') {
-            _controllers[field.key] = TextEditingController();
-          }
-          // Set default values
-          if (field.type == 'dropdown' && field.options != null && field.options!.isNotEmpty) {
-            _formData[field.key] = field.options![0];
-          } else if (field.type == 'switch') {
-            _formData[field.key] = false;
-          } else if (field.type == 'counter') {
-            _formData[field.key] = 0;
+    try {
+      String configString;
+      if (!kIsWeb) {
+        final userFile = await _getUserConfigFile();
+        if (await userFile.exists()) {
+          configString = await userFile.readAsString();
+        } else {
+          configString = await rootBundle.loadString('lib/config.json');
+        }
+      } else {
+        configString = await rootBundle.loadString('lib/config.json');
+      }
+
+      final Map<String, dynamic> configJson = json.decode(configString);
+      final List<_SectionConfig> sections = (configJson['sections'] as List)
+          .map((s) => _SectionConfig.fromJson(s))
+          .toList();
+      setState(() {
+        _sections = sections;
+        _controllers.clear();
+        _formData.clear();
+        for (final section in _sections) {
+          for (final field in section.fields) {
+            if (field.type == 'text' || field.type == 'number') {
+              _controllers[field.key] = TextEditingController();
+            }
+            // Set default values
+            if (field.type == 'dropdown' && field.options != null && field.options!.isNotEmpty) {
+              _formData[field.key] = field.options![0];
+            } else if (field.type == 'switch') {
+              _formData[field.key] = false;
+            } else if (field.type == 'counter') {
+              _formData[field.key] = 0;
+            }
           }
         }
+        _configLoaded = true;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load config: $e')),
+        );
       }
-      _configLoaded = true;
-    });
+    }
   }
 
   Future<void> _pickAndLoadConfig() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['json']);
-    if (result != null && result.files.single.bytes != null) {
+    if (result != null) {
       try {
-        final String configString = String.fromCharCodes(result.files.single.bytes!);
+        String configString;
+        if (result.files.single.bytes != null) {
+          configString = String.fromCharCodes(result.files.single.bytes!);
+        } else if (result.files.single.path != null && !kIsWeb) {
+          configString = await File(result.files.single.path!).readAsString();
+        } else {
+          throw 'Unsupported platform or missing file bytes.';
+        }
         final Map<String, dynamic> configJson = json.decode(configString);
         final List<_SectionConfig> sections = (configJson['sections'] as List)
             .map((s) => _SectionConfig.fromJson(s))
@@ -189,10 +225,55 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
           }
           _configLoaded = true;
         });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Config loaded for this session.')),
+          );
+        }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load config: $e')),
         );
+      }
+    }
+  }
+
+  Future<void> _importConfigAndSaveDefault() async {
+    if (kIsWeb) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Saving default config is not supported on Web. Use Load Config instead.')),
+      );
+      return;
+    }
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['json']);
+    if (result != null) {
+      try {
+        String configString;
+        if (result.files.single.bytes != null) {
+          configString = String.fromCharCodes(result.files.single.bytes!);
+        } else if (result.files.single.path != null) {
+          configString = await File(result.files.single.path!).readAsString();
+        } else {
+          throw 'Unsupported selection.';
+        }
+        final Map<String, dynamic> configJson = json.decode(configString);
+        if (configJson['sections'] is! List) {
+          throw 'Invalid config format: missing sections array';
+        }
+        final file = await _getUserConfigFile();
+        await file.writeAsString(configString);
+        await _loadConfig();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Default config saved to ${file.path}')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to save config: $e')),
+          );
+        }
       }
     }
   }
@@ -256,6 +337,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
           contentPadding: EdgeInsets.zero,
         );
       case 'counter':
+        final int current = (_formData[field.key] ?? 0) as int;
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 6.0),
           child: InputDecorator(
@@ -272,25 +354,25 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.remove_circle_outline),
-                      onPressed: (_formData[field.key] ?? 0) > 0
-                          ? () => setState(() => _formData[field.key] = (_formData[field.key] ?? 0) - 1)
+                      onPressed: current > 0
+                          ? () => setState(() => _formData[field.key] = current - 1)
                           : null,
-                      color: (_formData[field.key] ?? 0) > 0 ? Colors.redAccent : Colors.grey,
+                      color: current > 0 ? Colors.redAccent : Colors.grey,
                       constraints: const BoxConstraints(),
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       tooltip: 'Decrease',
                     ),
                     SizedBox(
-                      width: 30,
+                      width: 36,
                       child: Text(
-                        '${_formData[field.key] ?? 0}',
+                        '$current',
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.add_circle_outline),
-                      onPressed: () => setState(() => _formData[field.key] = (_formData[field.key] ?? 0) + 1),
+                      onPressed: () => setState(() => _formData[field.key] = current + 1),
                       color: Colors.greenAccent,
                       constraints: const BoxConstraints(),
                       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -309,19 +391,30 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
 
   Widget _buildSectionCard(String title, List<Widget> children) {
     return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.deepPurpleAccent.withOpacity(0.2)),
+      ),
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5.0),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.deepPurpleAccent[100],
-              ),
+            Row(
+              children: [
+                Icon(Icons.assignment, color: Colors.deepPurpleAccent[100]),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.deepPurpleAccent[100],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 10),
             ...children,
@@ -433,6 +526,12 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
+    final sectionWidgets = _sections
+        .map((section) => _buildSectionCard(
+              section.title,
+              section.fields.map(_buildField).toList(),
+            ))
+        .toList();
     return Scaffold(
       appBar: AppBar(
         title: const Text('OVERTURE REEFSCAPE QR SCOUTING OFFICIAL'),
@@ -440,74 +539,71 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.folder_open),
-            tooltip: 'Load Config',
+            tooltip: 'Load Config (session only)',
             onPressed: _pickAndLoadConfig,
+          ),
+          IconButton(
+            icon: const Icon(Icons.upload_file),
+            tooltip: 'Import as Default',
+            onPressed: _importConfigAndSaveDefault,
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          children: [
-            // --- Sections ---
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    children: _sections
-                        .sublist(0, (_sections.length / 2).ceil())
-                        .map((section) => _buildSectionCard(
-                              section.title,
-                              section.fields.map(_buildField).toList(),
-                            ))
-                        .toList(),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    children: _sections
-                        .sublist((_sections.length / 2).ceil())
-                        .map((section) => _buildSectionCard(
-                              section.title,
-                              section.fields.map(_buildField).toList(),
-                            ))
-                        .toList(),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.qr_code_scanner),
-                      label: const Text('Commit'),
-                      onPressed: _commitData,
-                      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 15)),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Reset Form'),
-                      onPressed: _resetForm,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        backgroundColor: Colors.grey[700],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 900;
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(10.0),
+            child: isWide
+                ? Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          children: sectionWidgets
+                              .sublist(0, (sectionWidgets.length / 2).ceil()),
+                        ),
                       ),
-                    ),
-                  ),
-                ],
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          children: sectionWidgets
+                              .sublist((sectionWidgets.length / 2).ceil()),
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(children: sectionWidgets),
+          );
+        },
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.qr_code_scanner),
+                  label: const Text('Commit'),
+                  onPressed: _commitData,
+                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Reset Form'),
+                  onPressed: _resetForm,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: Colors.grey[700],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
