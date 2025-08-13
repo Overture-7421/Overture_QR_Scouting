@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+import 'bluealliance_screen.dart';
 
 void main() {
   runApp(const ScoutingApp());
@@ -537,6 +538,17 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
         title: const Text('OVERTURE REEFSCAPE QR SCOUTING OFFICIAL'),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.api),
+            tooltip: 'BlueAlliance Integration',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const BlueAllianceScreen(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.folder_open),
             tooltip: 'Load Config (session only)',
