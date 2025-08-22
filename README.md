@@ -21,6 +21,7 @@ The primary goal is to streamline the scouting process by allowing scouters to q
     *   Option to copy a comma-separated list of the data column headers (useful for setting up spreadsheets).
 *   **Form Reset:** Quickly clears most fields and increments the match number for the next match, keeping scouter initials and robot selection.
 *   **Dark Theme:** Features a visually appealing dark theme suitable for event environments.
+*   **Schedule Import (.txt):** Load a simple .txt with Event name, Scouter IDs, their assigned matches, robot positions (Blue 1..Red 3), and team numbers. After loading, the app pops up for Scouter ID, then offers that scouter’s matches and auto-fills scouter, match number, robot position, and team.
 
 ## How to Use
 
@@ -30,6 +31,30 @@ The primary goal is to streamline the scouting process by allowing scouters to q
     *   A dialog box will appear displaying a QR code. Scan this code using a compatible QR scanning application or device.
     *   Alternatively, use the "Copy Info" button to copy the tab-separated data string or the "Copy Columns" button to copy the CSV header row.
 4.  **Reset for Next Match:** Click the "Reset Form" button. This will clear the form data (while incrementing the match number and keeping scouter/robot info) ready for the next match scouting.
+
+### Load a Schedule (.txt)
+
+1. Prepare a plain text file with this flexible format:
+
+    - First line (optional): `Event: <Event Name>`
+    - One assignment per line in the form: `ScouterID, MatchNumber, Position, TeamNumber`
+    - Separators supported: commas, tabs, or two-or-more spaces. Lines starting with `#` are ignored.
+
+    Example:
+
+    ```
+    Event: Beach Blitz 2025
+    # ScouterID , Match , Position , Team
+    ANA, 1, Blue 1, 1234
+    ANA, 3, Red 2, 5678
+    LEO, 1, Blue 2, 4321
+    LEO, 3, Red 3, 8765
+    # positions can be in any case; "blue1" or "Red 3" also work
+    ```
+
+2. In the app, click the upload icon (Load Schedule) and select your `.txt`.
+3. Enter or pick the Scouter ID when prompted.
+4. Use the "Select Match" dropdown shown at the top header to switch between that scouter’s assigned matches. The app auto-fills Scouter Initials, Match Number, Robot, and Team Number.
 
 ## Building the App
 

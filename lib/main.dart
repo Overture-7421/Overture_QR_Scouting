@@ -118,11 +118,33 @@ class _SectionConfig {
   }
 }
 
+// ---------------------- Schedule Models ----------------------
+class _Assignment {
+  final String scouterId;
+  final int match;
+  final String position; // e.g., "Blue 1", "Red 3"
+  final int team;
+  const _Assignment({required this.scouterId, required this.match, required this.position, required this.team});
+}
+
+class _ParsedSchedule {
+  final String? eventName;
+  final List<_Assignment> assignments;
+  final Map<String, List<_Assignment>> groupedByScouter;
+  const _ParsedSchedule({required this.eventName, required this.assignments, required this.groupedByScouter});
+}
+
 class _ScoutingHomePageState extends State<ScoutingHomePage> {
   // --- State Variables ---
   Map<String, dynamic> _formData = {};
   List<_SectionConfig> _sections = [];
   bool _configLoaded = false;
+
+  // --- Schedule State ---
+  String? _eventName; // From schedule file header
+  final Map<String, List<_Assignment>> _scheduleByScouter = {}; // scouterId -> assignments
+  String? _selectedScouterId;
+  int? _selectedMatchNumber; // currently selected match for scouter
 
   // Controllers for text fields
   final Map<String, TextEditingController> _controllers = {};
@@ -195,6 +217,261 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
         );
       }
     }
+  }
+
+  // ---------------------- Schedule (.txt) load & apply ----------------------
+  Future<void> _pickAndLoadSchedule() async {
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['txt'],
+    );
+    if (result == null || result.files.single.bytes == null) return;
+
+    final String text = String.fromCharCodes(result.files.single.bytes!);
+    final _ParsedSchedule parsed = _parseScheduleText(text);
+    if (parsed.assignments.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No schedule entries found in file.')),
+        );
+      }
+      return;
+    }
+    setState(() {
+      _eventName = parsed.eventName;
+      _scheduleByScouter
+        ..clear()
+        ..addAll(parsed.groupedByScouter);
+      _selectedScouterId = null;
+      _selectedMatchNumber = null;
+    });
+
+    // Prompt for scouter ID after successful load
+    _promptForScouterId();
+  }
+
+  void _promptForScouterId() {
+    final List<String> knownIds = _scheduleByScouter.keys.toList()..sort();
+    final TextEditingController idCtrl = TextEditingController(text: _selectedScouterId ?? '');
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        String? dropdownVal = knownIds.isNotEmpty ? knownIds.first : null;
+        return StatefulBuilder(
+          builder: (ctx, setStateDialog) {
+            return AlertDialog(
+              title: const Text('Enter Scouter ID'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_eventName != null) Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Text('Event: ${_eventName!}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                  ),
+                  TextField(
+                    controller: idCtrl,
+                    decoration: const InputDecoration(labelText: 'Scouter ID'),
+                  ),
+                  if (knownIds.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    const Text('Or pick from file:', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                    DropdownButton<String>(
+                      value: dropdownVal,
+                      isExpanded: true,
+                      items: knownIds.map((id) => DropdownMenuItem(value: id, child: Text(id))).toList(),
+                      onChanged: (val) {
+                        setStateDialog(() {
+                          dropdownVal = val;
+                          idCtrl.text = val ?? '';
+                        });
+                      },
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final String entered = idCtrl.text.trim();
+                    if (!_scheduleByScouter.containsKey(entered)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('ID \"$entered\" not found in schedule.')),
+                      );
+                      return;
+                    }
+                    final list = _scheduleByScouter[entered]!;
+                    final first = list.first;
+                    setState(() {
+                      _selectedScouterId = entered;
+                      _selectedMatchNumber = first.match;
+                    });
+                    _applyAssignment(first);
+                    Navigator.of(ctx).pop();
+                  },
+                  child: const Text('Use ID'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _applyAssignment(_Assignment a, {bool alsoSetScouter = true}) {
+    // Fill PREMATCH fields from assignment
+    final String scouter = _selectedScouterId ?? '';
+    if (alsoSetScouter && _controllers.containsKey('scouterInitials')) {
+      _controllers['scouterInitials']!.text = scouter;
+      _formData['scouterInitials'] = scouter;
+    }
+    if (_controllers.containsKey('matchNumber')) {
+      _controllers['matchNumber']!.text = a.match.toString();
+      _formData['matchNumber'] = a.match.toString();
+    }
+  // Robot dropdown
+  _formData['robot'] = _normalizeRobotPosition(a.position);
+    // Team number
+    if (_controllers.containsKey('teamNumber')) {
+      _controllers['teamNumber']!.text = a.team.toString();
+      _formData['teamNumber'] = a.team.toString();
+    }
+    setState(() {});
+  }
+
+  String _normalizeRobotPosition(String s) {
+    final v = s.trim().toLowerCase();
+    if (v.contains('blue')) {
+      if (v.contains('1')) return 'Blue 1';
+      if (v.contains('2')) return 'Blue 2';
+      if (v.contains('3')) return 'Blue 3';
+      return 'Blue 1';
+    }
+    if (v.contains('red')) {
+      if (v.contains('1')) return 'Red 1';
+      if (v.contains('2')) return 'Red 2';
+      if (v.contains('3')) return 'Red 3';
+      return 'Red 1';
+    }
+    // default
+    return 'Blue 1';
+  }
+
+  _ParsedSchedule _parseScheduleText(String text) {
+    // Simple flexible format:
+    // Event: <Event Name>
+    // # comments allowed
+    // scouterId, match, position, team
+    // Example: JDO, 1, Blue 1, 1234
+    final lines = text.split(RegExp(r'\r?\n'));
+    String? evt;
+    final List<_Assignment> items = [];
+    for (final raw in lines) {
+      final line = raw.trim();
+      if (line.isEmpty || line.startsWith('#')) continue;
+      if (line.toLowerCase().startsWith('event:')) {
+        evt = line.substring(line.indexOf(':') + 1).trim();
+        continue;
+      }
+      // split by comma, tab, or multiple spaces
+      final parts = line.split(RegExp(r',|\t+|\s{2,}'))
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+      if (parts.length < 4) continue;
+      final String scouterId = parts[0];
+      final int? match = int.tryParse(parts[1]);
+      final String position = parts[2];
+      final int? team = int.tryParse(parts[3]);
+      if (match == null || team == null) continue;
+      items.add(_Assignment(scouterId: scouterId, match: match, position: position, team: team));
+    }
+    // Group by scouter
+  final Map<String, List<_Assignment>> grouped = {};
+    for (final a in items) {
+      grouped.putIfAbsent(a.scouterId, () => []).add(a);
+    }
+    // Sort each scouter's assignments by match
+    for (final v in grouped.values) {
+      v.sort((a, b) => a.match.compareTo(b.match));
+    }
+    return _ParsedSchedule(eventName: evt, assignments: items, groupedByScouter: grouped);
+  }
+
+  // Data types for schedule
+  // ignore: unused_element
+  String? get _currentEventName => _eventName;
+
+  // ---------------------- UI helpers for schedule ----------------------
+  Widget _buildScheduleHeaderCard() {
+    if (_selectedScouterId == null) return const SizedBox.shrink();
+    final List<_Assignment> list = _scheduleByScouter[_selectedScouterId!] ?? [];
+    if (list.isEmpty) return const SizedBox.shrink();
+    final int currentMatch = _selectedMatchNumber ?? list.first.match;
+    final _Assignment current = list.firstWhere(
+      (a) => a.match == currentMatch,
+      orElse: () => list.first,
+    );
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5.0),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _eventName != null ? 'Event: ${_eventName!}' : 'Schedule Loaded',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Text('Scouter: ${_selectedScouterId!}', style: const TextStyle(color: Colors.white70)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            InputDecorator(
+              decoration: const InputDecoration(
+                labelText: 'Select Match',
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 12.0),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<int>(
+                  value: current.match,
+                  isExpanded: true,
+                  items: list
+                      .map((a) => DropdownMenuItem<int>(
+                            value: a.match,
+                            child: Text('Match ${a.match} — ${a.position} — Team ${a.team}'),
+                          ))
+                      .toList(),
+                  onChanged: (val) {
+                    if (val == null) return;
+                    final _Assignment sel = list.firstWhere((a) => a.match == val, orElse: () => list.first);
+                    setState(() {
+                      _selectedMatchNumber = sel.match;
+                    });
+                    _applyAssignment(sel);
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text('Auto-fills scouter, match, position, and team.', style: const TextStyle(fontSize: 12, color: Colors.white70)),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildField(_FieldConfig field) {
@@ -439,6 +716,16 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.upload_file),
+            tooltip: 'Load Schedule (.txt)',
+            onPressed: _pickAndLoadSchedule,
+          ),
+          IconButton(
+            icon: const Icon(Icons.badge),
+            tooltip: 'Select Scouter ID',
+            onPressed: _scheduleByScouter.isEmpty ? null : _promptForScouterId,
+          ),
+          IconButton(
             icon: const Icon(Icons.folder_open),
             tooltip: 'Load Config',
             onPressed: _pickAndLoadConfig,
@@ -449,6 +736,8 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
         padding: const EdgeInsets.all(10.0),
         child: Column(
           children: [
+            // Schedule header (if a schedule is loaded and a scouter is selected)
+            _buildScheduleHeaderCard(),
             // --- Sections ---
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
