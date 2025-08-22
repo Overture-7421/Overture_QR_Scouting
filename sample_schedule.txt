@@ -1,0 +1,13 @@
+Event: Overture Open 2025
+# ScouterID , Match , Position , Team
+ANA, 1, Blue 1, 1234
+ANA, 2, Blue 3, 7890
+ANA, 3, red 2, 5678
+LEO, 1, Blue 2, 4321
+LEO, 3, Red 3, 8765
+SAM, 2, blue1, 2468
+SAM, 4, RED 1, 1357
+# Tabs example:
+MIA	5	Red 2	9999
+# Two-or-more spaces example:
+JOE  6  Blue 2  1111
