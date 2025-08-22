@@ -4,6 +4,7 @@ import 'package:flutter/services.dart'; // Import for Clipboard
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:file_picker/file_picker.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 void main() {
   runApp(const ScoutingApp());
@@ -148,6 +149,11 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
 
   // Controllers for text fields
   final Map<String, TextEditingController> _controllers = {};
+
+  // --- YouTube Player State ---
+  YoutubePlayerController? _ytController;
+  bool _showVideo = false;
+  String? _currentVideoId;
 
   @override
   void initState() {
@@ -697,6 +703,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
 
   @override
   void dispose() {
+  _ytController?.close();
     for (final controller in _controllers.values) {
       controller.dispose();
     }
@@ -715,6 +722,11 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
         title: const Text('OVERTURE REEFSCAPE QR SCOUTING OFFICIAL'),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.ondemand_video),
+            tooltip: 'Open YouTube Video',
+            onPressed: _promptForYouTubeLink,
+          ),
           IconButton(
             icon: const Icon(Icons.upload_file),
             tooltip: 'Load Schedule (.txt)',
@@ -736,6 +748,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
         padding: const EdgeInsets.all(10.0),
         child: Column(
           children: [
+            if (_showVideo) _buildYouTubeCard(),
             // Schedule header (if a schedule is loaded and a scouter is selected)
             _buildScheduleHeaderCard(),
             // --- Sections ---
@@ -796,6 +809,138 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
               ),
             ),
             const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---------------------- YouTube helpers ----------------------
+  void _promptForYouTubeLink() {
+    final TextEditingController linkCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Paste YouTube Link'),
+          content: TextField(
+            controller: linkCtrl,
+            decoration: const InputDecoration(hintText: 'https://youtu.be/... or https://www.youtube.com/watch?v=...'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final url = linkCtrl.text.trim();
+                final vid = _extractYouTubeId(url);
+                if (vid == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Invalid YouTube URL')),
+                  );
+                  return;
+                }
+                _loadYouTubeVideo(vid);
+                Navigator.of(ctx).pop();
+              },
+              child: const Text('Load'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  String? _extractYouTubeId(String url) {
+    try {
+      final uri = Uri.parse(url);
+      if ((uri.host.contains('youtube.com') || uri.host.contains('youtu.be'))) {
+        // youtu.be/<id>
+        if (uri.host.contains('youtu.be')) {
+          final id = uri.pathSegments.isNotEmpty ? uri.pathSegments.first : null;
+          return (id != null && id.isNotEmpty) ? id : null;
+        }
+        // youtube.com/watch?v=<id>
+        if (uri.queryParameters.containsKey('v')) {
+          final id = uri.queryParameters['v'];
+          return (id != null && id.isNotEmpty) ? id : null;
+        }
+        // youtube.com/embed/<id>
+        if (uri.pathSegments.contains('embed')) {
+          final idx = uri.pathSegments.indexOf('embed');
+          if (idx >= 0 && idx + 1 < uri.pathSegments.length) {
+            final id = uri.pathSegments[idx + 1];
+            return (id.isNotEmpty) ? id : null;
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  void _loadYouTubeVideo(String videoId) {
+    if (_ytController == null) {
+      _ytController = YoutubePlayerController(
+        params: const YoutubePlayerParams(
+          showFullscreenButton: true,
+          strictRelatedVideos: true,
+          enableKeyboard: true,
+          playsInline: true,
+        ),
+      );
+    }
+    _currentVideoId = videoId;
+    _ytController!.loadVideoById(videoId: videoId);
+    _ytController!.playVideo();
+    setState(() => _showVideo = true);
+  }
+
+  Widget _buildYouTubeCard() {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5.0),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Match Video', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Row(
+                  children: [
+                    IconButton(
+                      tooltip: 'Change Video',
+                      icon: const Icon(Icons.link),
+                      onPressed: _promptForYouTubeLink,
+                    ),
+                    IconButton(
+                      tooltip: 'Close Video',
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        setState(() => _showVideo = false);
+                        // pause video
+                        _ytController?.pauseVideo();
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: _ytController == null
+                  ? const Center(child: Text('No video loaded'))
+                  : YoutubePlayer(controller: _ytController!),
+            ),
+            if (_currentVideoId != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 6.0),
+                child: Text('Video ID: $_currentVideoId', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              ),
           ],
         ),
       ),
