@@ -1,0 +1,57 @@
+{
+  "sections": [
+    {
+      "title": "PREMATCH",
+      "fields": [
+        {"type": "text", "label": "SCOUTER INITIALS", "key": "scouterInitials"},
+        {"type": "number", "label": "MATCH NUMBER", "key": "matchNumber"},
+        {"type": "dropdown", "label": "ROBOT", "key": "robot", "options": ["Blue 1", "Blue 2", "Blue 3", "Red 1", "Red 2", "Red 3"]},
+        {"type": "switch", "label": "FUTURE ALLIANCE IN QUALY?", "key": "futureAlliance"},
+        {"type": "number", "label": "TEAM NUMBER", "key": "teamNumber"},
+        {"type": "dropdown", "label": "STARTING POSITION", "key": "startingPosition", "options": ["Processor Side", "Middle", "No-Processor Side"]},
+        {"type": "switch", "label": "NO SHOW", "key": "noShow"}
+      ]
+    },
+    {
+      "title": "AUTONOMOUS",
+      "fields": [
+        {"type": "switch", "label": "MOVED?", "key": "moved"},
+        {"type": "counter", "label": "CORAL L1 SCORED", "key": "coralL1Auto"},
+        {"type": "counter", "label": "CORAL L2 SCORED", "key": "coralL2Auto"},
+        {"type": "counter", "label": "CORAL L3 SCORED", "key": "coralL3Auto"},
+        {"type": "counter", "label": "CORAL L4 SCORED", "key": "coralL4Auto"},
+        {"type": "counter", "label": "BARGE ALGAE SCORED", "key": "bargeAlgaeAuto"},
+        {"type": "counter", "label": "PROCESSOR ALGAE SCORED", "key": "processorAlgaeAuto"},
+        {"type": "switch", "label": "DISLODGED ALGAE?", "key": "dislodgedAlgaeAuto"},
+        {"type": "counter", "label": "AUTO FOUL", "key": "autoFoul"}
+      ]
+    },
+    {
+      "title": "TELEOP",
+      "fields": [
+        {"type": "switch", "label": "DISLODGED ALGAE?", "key": "dislodgedAlgaeTeleop"},
+        {"type": "dropdown", "label": "PICKUP LOCATION", "key": "pickupLocation", "options": ["Ground", "Source", "Both"]},
+        {"type": "counter", "label": "CORAL L1 SCORED", "key": "coralL1Teleop"},
+        {"type": "counter", "label": "CORAL L2 SCORED", "key": "coralL2Teleop"},
+        {"type": "counter", "label": "CORAL L3 SCORED", "key": "coralL3Teleop"},
+        {"type": "counter", "label": "CORAL L4 SCORED", "key": "coralL4Teleop"},
+        {"type": "counter", "label": "BARGE ALGAE SCORED", "key": "bargeAlgaeTeleop"},
+        {"type": "counter", "label": "PROCESSOR ALGAE SCORED", "key": "processorAlgaeTeleop"},
+        {"type": "switch", "label": "CROSSED FIELD/PLAYED DEFENSE?", "key": "crossedFieldDefense"},
+        {"type": "switch", "label": "TIPPED/FELL OVER?", "key": "tippedFell"},
+        {"type": "counter", "label": "TOUCHED OPPOSING CAGE", "key": "touchedOpposingCage"},
+        {"type": "switch", "label": "DIED?", "key": "died"}
+      ]
+    },
+    {
+      "title": "ENDGAME",
+      "fields": [
+        {"type": "dropdown", "label": "END POSITION", "key": "endPosition", "options": ["None", "Parked", "Shallow Climb", "Deep Climb"]},
+        {"type": "switch", "label": "BROKE?", "key": "broke"},
+        {"type": "switch", "label": "DEFENDED?", "key": "defended"},
+        {"type": "switch", "label": "CORAL HP MISTAKE?", "key": "coralHpMistake"},
+        {"type": "dropdown", "label": "YELLOW/RED CARD", "key": "yellowRedCard", "options": ["None", "Yellow Card", "Red Card"]}
+      ]
+    }
+  ]
+}

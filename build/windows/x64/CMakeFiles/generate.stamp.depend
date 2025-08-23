@@ -1,9 +1,9 @@
 # CMake generation dependency list for this directory.
-C:/OvertureQR/overture_qr_scouting/build/windows/x64/CMakeFiles/3.29.5-msvc4/CMakeCXXCompiler.cmake
-C:/OvertureQR/overture_qr_scouting/build/windows/x64/CMakeFiles/3.29.5-msvc4/CMakeRCCompiler.cmake
-C:/OvertureQR/overture_qr_scouting/build/windows/x64/CMakeFiles/3.29.5-msvc4/CMakeSystem.cmake
-C:/OvertureQR/overture_qr_scouting/windows/CMakeLists.txt
-C:/OvertureQR/overture_qr_scouting/windows/flutter/generated_plugins.cmake
+C:/Overture_QR_Scouting/build/windows/x64/CMakeFiles/3.29.5-msvc4/CMakeCXXCompiler.cmake
+C:/Overture_QR_Scouting/build/windows/x64/CMakeFiles/3.29.5-msvc4/CMakeRCCompiler.cmake
+C:/Overture_QR_Scouting/build/windows/x64/CMakeFiles/3.29.5-msvc4/CMakeSystem.cmake
+C:/Overture_QR_Scouting/windows/CMakeLists.txt
+C:/Overture_QR_Scouting/windows/flutter/generated_plugins.cmake
 C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.29/Modules/CMakeCXXCompiler.cmake.in
 C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.29/Modules/CMakeCXXCompilerABI.cpp
 C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.29/Modules/CMakeCXXInformation.cmake

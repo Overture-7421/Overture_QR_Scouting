@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:qr_flutter/qr_flutter.dart'; // Import QR package
-import 'package:flutter/services.dart'; // Import for Clipboard
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:flutter/services.dart';
 import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:file_picker/file_picker.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
@@ -17,11 +16,10 @@ class ScoutingApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Overture reefscape Scouting',
-      // Use a dark theme similar to the image
       theme: ThemeData.dark().copyWith(
         primaryColor: Colors.deepPurpleAccent,
-        scaffoldBackgroundColor: const Color(0xFF121212), // Dark background
-        cardColor: const Color(0xFF1E1E1E), // Slightly lighter card background
+        scaffoldBackgroundColor: const Color(0xFF121212),
+        cardColor: const Color(0xFF1E1E1E),
         inputDecorationTheme: const InputDecorationTheme(
           border: OutlineInputBorder(),
           focusedBorder: OutlineInputBorder(
@@ -31,8 +29,8 @@ class ScoutingApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.deepPurpleAccent, // Button color
-            foregroundColor: Colors.white, // Text color on button
+            backgroundColor: Colors.deepPurpleAccent,
+            foregroundColor: Colors.white,
           ),
         ),
         appBarTheme: const AppBarTheme(
@@ -48,28 +46,25 @@ class ScoutingApp extends StatelessWidget {
             if (states.contains(MaterialState.selected)) {
               return Colors.deepPurpleAccent;
             }
-            return null; // Default
+            return null;
           }),
           trackColor: MaterialStateProperty.resolveWith<Color?>((states) {
             if (states.contains(MaterialState.selected)) {
               return Colors.deepPurpleAccent.withOpacity(0.5);
             }
-            return null; // Default
+            return null;
           }),
         ),
         dropdownMenuTheme: DropdownMenuThemeData(
-          // filled: true, // Moved to InputDecorationTheme below
-          // fillColor: const Color(0xFF2A2A2A), // Moved to InputDecorationTheme below
-          inputDecorationTheme: const InputDecorationTheme( // Need InputDecorationTheme here for filled/fillColor
-             filled: true, // Keep it here
-             fillColor: Color(0xFF2A2A2A), // Keep it here
-             border: InputBorder.none, // Optional: remove border if using filled style
+          inputDecorationTheme: const InputDecorationTheme(
+            filled: true,
+            fillColor: Color(0xFF2A2A2A),
+            border: InputBorder.none,
           ),
-          textStyle: const TextStyle(color: Colors.white), // Ensure text is visible
+          textStyle: const TextStyle(color: Colors.white),
           menuStyle: MenuStyle(
-             backgroundColor: MaterialStateProperty.all(const Color(0xFF2A2A2A)), // Background of the dropdown menu itself
+            backgroundColor: MaterialStateProperty.all(const Color(0xFF2A2A2A)),
           ),
-          // iconEnabledColor: Colors.deepPurpleAccent, // This property doesn't exist directly on DropdownMenuThemeData
         ),
         textSelectionTheme: TextSelectionThemeData(
           cursorColor: Colors.deepPurpleAccent,
@@ -119,11 +114,10 @@ class _SectionConfig {
   }
 }
 
-// ---------------------- Schedule Models ----------------------
 class _Assignment {
   final String scouterId;
   final int match;
-  final String position; // e.g., "Blue 1", "Red 3"
+  final String position;
   final int team;
   const _Assignment({required this.scouterId, required this.match, required this.position, required this.team});
 }
@@ -136,21 +130,21 @@ class _ParsedSchedule {
 }
 
 class _ScoutingHomePageState extends State<ScoutingHomePage> {
-  // --- State Variables ---
+  // Form state
   Map<String, dynamic> _formData = {};
   List<_SectionConfig> _sections = [];
   bool _configLoaded = false;
 
-  // --- Schedule State ---
-  String? _eventName; // From schedule file header
-  final Map<String, List<_Assignment>> _scheduleByScouter = {}; // scouterId -> assignments
+  // Schedule state
+  String? _eventName;
+  final Map<String, List<_Assignment>> _scheduleByScouter = {};
   String? _selectedScouterId;
-  int? _selectedMatchNumber; // currently selected match for scouter
+  int? _selectedMatchNumber;
 
   // Controllers for text fields
   final Map<String, TextEditingController> _controllers = {};
 
-  // --- YouTube Player State ---
+  // YouTube state
   YoutubePlayerController? _ytController;
   bool _showVideo = false;
   String? _currentVideoId;
@@ -174,7 +168,6 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
           if (field.type == 'text' || field.type == 'number') {
             _controllers[field.key] = TextEditingController();
           }
-          // Set default values
           if (field.type == 'dropdown' && field.options != null && field.options!.isNotEmpty) {
             _formData[field.key] = field.options![0];
           } else if (field.type == 'switch') {
@@ -218,6 +211,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
           _configLoaded = true;
         });
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load config: $e')),
         );
@@ -225,7 +219,6 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
     }
   }
 
-  // ---------------------- Schedule (.txt) load & apply ----------------------
   Future<void> _pickAndLoadSchedule() async {
     final FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -252,7 +245,6 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
       _selectedMatchNumber = null;
     });
 
-    // Prompt for scouter ID after successful load
     _promptForScouterId();
   }
 
@@ -310,7 +302,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
                     final String entered = idCtrl.text.trim();
                     if (!_scheduleByScouter.containsKey(entered)) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('ID \"$entered\" not found in schedule.')),
+                        SnackBar(content: Text('ID "$entered" not found in schedule.')),
                       );
                       return;
                     }
@@ -334,7 +326,6 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
   }
 
   void _applyAssignment(_Assignment a, {bool alsoSetScouter = true}) {
-    // Fill PREMATCH fields from assignment
     final String scouter = _selectedScouterId ?? '';
     if (alsoSetScouter && _controllers.containsKey('scouterInitials')) {
       _controllers['scouterInitials']!.text = scouter;
@@ -344,9 +335,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
       _controllers['matchNumber']!.text = a.match.toString();
       _formData['matchNumber'] = a.match.toString();
     }
-  // Robot dropdown
-  _formData['robot'] = _normalizeRobotPosition(a.position);
-    // Team number
+    _formData['robot'] = _normalizeRobotPosition(a.position);
     if (_controllers.containsKey('teamNumber')) {
       _controllers['teamNumber']!.text = a.team.toString();
       _formData['teamNumber'] = a.team.toString();
@@ -368,16 +357,10 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
       if (v.contains('3')) return 'Red 3';
       return 'Red 1';
     }
-    // default
     return 'Blue 1';
   }
 
   _ParsedSchedule _parseScheduleText(String text) {
-    // Simple flexible format:
-    // Event: <Event Name>
-    // # comments allowed
-    // scouterId, match, position, team
-    // Example: JDO, 1, Blue 1, 1234
     final lines = text.split(RegExp(r'\r?\n'));
     String? evt;
     final List<_Assignment> items = [];
@@ -388,11 +371,11 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
         evt = line.substring(line.indexOf(':') + 1).trim();
         continue;
       }
-      // split by comma, tab, or multiple spaces
-      final parts = line.split(RegExp(r',|\t+|\s{2,}'))
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
+      final parts = line
+          .split(RegExp(r',|\t+|\s{2,}'))
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
       if (parts.length < 4) continue;
       final String scouterId = parts[0];
       final int? match = int.tryParse(parts[1]);
@@ -401,23 +384,18 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
       if (match == null || team == null) continue;
       items.add(_Assignment(scouterId: scouterId, match: match, position: position, team: team));
     }
-    // Group by scouter
-  final Map<String, List<_Assignment>> grouped = {};
+    final Map<String, List<_Assignment>> grouped = {};
     for (final a in items) {
       grouped.putIfAbsent(a.scouterId, () => []).add(a);
     }
-    // Sort each scouter's assignments by match
     for (final v in grouped.values) {
       v.sort((a, b) => a.match.compareTo(b.match));
     }
     return _ParsedSchedule(eventName: evt, assignments: items, groupedByScouter: grouped);
   }
 
-  // Data types for schedule
-  // ignore: unused_element
-  String? get _currentEventName => _eventName;
+  
 
-  // ---------------------- UI helpers for schedule ----------------------
   Widget _buildScheduleHeaderCard() {
     if (_selectedScouterId == null) return const SizedBox.shrink();
     final List<_Assignment> list = _scheduleByScouter[_selectedScouterId!] ?? [];
@@ -473,7 +451,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
               ),
             ),
             const SizedBox(height: 6),
-            Text('Auto-fills scouter, match, position, and team.', style: const TextStyle(fontSize: 12, color: Colors.white70)),
+            const Text('Auto-fills scouter, match, position, and team.', style: TextStyle(fontSize: 12, color: Colors.white70)),
           ],
         ),
       ),
@@ -590,32 +568,75 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
     }
   }
 
-  Widget _buildSectionCard(String title, List<Widget> children) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5.0),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.deepPurpleAccent[100],
+  Widget _buildTabContent(_SectionConfig section) {
+    final widgets = section.fields.map(_buildField).toList();
+    
+    // Add schedule header for PREMATCH section
+    if (section.title.toUpperCase().contains('PREMATCH') && _selectedScouterId != null) {
+      widgets.insert(0, _buildScheduleHeaderCard());
+    }
+    
+    // Add commit/reset buttons for ENDGAME section
+    if (section.title.toUpperCase().contains('ENDGAME')) {
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.qr_code_scanner, size: 18),
+                  label: const Text('Commit'),
+                  onPressed: _commitData,
+                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            ...children,
-          ],
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: const Text('Reset'),
+                  onPressed: _resetForm,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    backgroundColor: Colors.grey[700],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
+      );
+    }
+    
+    final mid = (widgets.length / 2).ceil();
+    final left = widgets.sublist(0, mid);
+    final right = widgets.sublist(mid);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth > 800;
+        if (!wide) {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Column(children: widgets),
+          );
+        }
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: Column(children: left)),
+              const SizedBox(width: 10),
+              Expanded(child: Column(children: right)),
+            ],
+          ),
+        );
+      },
     );
   }
 
   void _commitData() {
-    // Gather all data points in order of config
     final List<String> data = [];
     final List<String> columnHeaders = [];
     for (final section in _sections) {
@@ -679,8 +700,6 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
         );
       },
     );
-    print("QR Data String:\n$qrData");
-    print("Column Headers String (CSV):\n$columnData");
   }
 
   void _resetForm() {
@@ -703,7 +722,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
 
   @override
   void dispose() {
-  _ytController?.close();
+    _ytController?.close();
     for (final controller in _controllers.values) {
       controller.dispose();
     }
@@ -717,105 +736,64 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('OVERTURE REEFSCAPE QR SCOUTING OFFICIAL'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.ondemand_video),
-            tooltip: 'Open YouTube Video',
-            onPressed: _promptForYouTubeLink,
-          ),
-          IconButton(
-            icon: const Icon(Icons.upload_file),
-            tooltip: 'Load Schedule (.txt)',
-            onPressed: _pickAndLoadSchedule,
-          ),
-          IconButton(
-            icon: const Icon(Icons.badge),
-            tooltip: 'Select Scouter ID',
-            onPressed: _scheduleByScouter.isEmpty ? null : _promptForScouterId,
-          ),
-          IconButton(
-            icon: const Icon(Icons.folder_open),
-            tooltip: 'Load Config',
-            onPressed: _pickAndLoadConfig,
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          children: [
-            if (_showVideo) _buildYouTubeCard(),
-            // Schedule header (if a schedule is loaded and a scouter is selected)
-            _buildScheduleHeaderCard(),
-            // --- Sections ---
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    children: _sections
-                        .sublist(0, (_sections.length / 2).ceil())
-                        .map((section) => _buildSectionCard(
-                              section.title,
-                              section.fields.map(_buildField).toList(),
-                            ))
-                        .toList(),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    children: _sections
-                        .sublist((_sections.length / 2).ceil())
-                        .map((section) => _buildSectionCard(
-                              section.title,
-                              section.fields.map(_buildField).toList(),
-                            ))
-                        .toList(),
-                  ),
-                ),
-              ],
+    return DefaultTabController(
+      length: _sections.length,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('OVERTURE REEFSCAPE QR SCOUTING OFFICIAL'),
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.ondemand_video),
+              tooltip: 'Open YouTube Video',
+              onPressed: _promptForYouTubeLink,
             ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.qr_code_scanner),
-                      label: const Text('Commit'),
-                      onPressed: _commitData,
-                      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 15)),
-                    ),
+            IconButton(
+              icon: const Icon(Icons.upload_file),
+              tooltip: 'Load Schedule (.txt)',
+              onPressed: _pickAndLoadSchedule,
+            ),
+            IconButton(
+              icon: const Icon(Icons.badge),
+              tooltip: 'Select Scouter ID',
+              onPressed: _scheduleByScouter.isEmpty ? null : _promptForScouterId,
+            ),
+            IconButton(
+              icon: const Icon(Icons.folder_open),
+              tooltip: 'Load Config',
+              onPressed: _pickAndLoadConfig,
+            ),
+          ],
+          bottom: TabBar(
+            isScrollable: true,
+            tabs: _sections.map((s) => Tab(text: s.title)).toList(),
+          ),
+        ),
+        body: Column(
+          children: [
+            // Scrollable header area for video only
+            if (_showVideo)
+              Flexible(
+                flex: 0,
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: _buildYouTubeCard(),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Reset Form'),
-                      onPressed: _resetForm,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        backgroundColor: Colors.grey[700],
-                      ),
-                    ),
-                  ),
-                ],
+                ),
+              ),
+            // Main form content - takes remaining space
+            Expanded(
+              child: TabBarView(
+                children: _sections.map((section) => _buildTabContent(section)).toList(),
               ),
             ),
-            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  // ---------------------- YouTube helpers ----------------------
   void _promptForYouTubeLink() {
     final TextEditingController linkCtrl = TextEditingController();
     showDialog(
@@ -857,17 +835,14 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
     try {
       final uri = Uri.parse(url);
       if ((uri.host.contains('youtube.com') || uri.host.contains('youtu.be'))) {
-        // youtu.be/<id>
         if (uri.host.contains('youtu.be')) {
           final id = uri.pathSegments.isNotEmpty ? uri.pathSegments.first : null;
           return (id != null && id.isNotEmpty) ? id : null;
         }
-        // youtube.com/watch?v=<id>
         if (uri.queryParameters.containsKey('v')) {
           final id = uri.queryParameters['v'];
           return (id != null && id.isNotEmpty) ? id : null;
         }
-        // youtube.com/embed/<id>
         if (uri.pathSegments.contains('embed')) {
           final idx = uri.pathSegments.indexOf('embed');
           if (idx >= 0 && idx + 1 < uri.pathSegments.length) {
@@ -921,7 +896,6 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
                       icon: const Icon(Icons.close),
                       onPressed: () {
                         setState(() => _showVideo = false);
-                        // pause video
                         _ytController?.pauseVideo();
                       },
                     ),
@@ -930,11 +904,22 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
               ],
             ),
             const SizedBox(height: 8),
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: _ytController == null
-                  ? const Center(child: Text('No video loaded'))
-                  : YoutubePlayer(controller: _ytController!),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final screenH = MediaQuery.of(context).size.height;
+                final width = constraints.maxWidth;
+                final idealHeight = width / (16 / 9);
+                // Cap player height between 180 and 40% of screen height to avoid overflow
+                final maxAllowed = screenH * 0.4;
+                final height = idealHeight.clamp(180.0, maxAllowed);
+                return SizedBox(
+                  height: height,
+                  width: double.infinity,
+                  child: _ytController == null
+                      ? const Center(child: Text('No video loaded'))
+                      : YoutubePlayer(controller: _ytController!),
+                );
+              },
             ),
             if (_currentVideoId != null)
               Padding(

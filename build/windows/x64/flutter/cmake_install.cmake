@@ -1,4 +1,4 @@
-# Install script for directory: C:/OvertureQR/overture_qr_scouting/windows/flutter
+# Install script for directory: C:/Overture_QR_Scouting/windows/flutter
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

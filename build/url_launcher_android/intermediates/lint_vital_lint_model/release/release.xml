@@ -1,0 +1,31 @@
+<variant
+    name="release"
+    package="io.flutter.plugins.urllauncher"
+    minSdkVersion="21"
+    targetSdkVersion="21"
+    mergedManifest="C:\Overture_QR_Scouting\build\url_launcher_android\intermediates\merged_manifest\release\AndroidManifest.xml"
+    manifestMergeReport="C:\Overture_QR_Scouting\build\url_launcher_android\outputs\logs\manifest-merger-release-report.txt"
+    proguardFiles="C:\Overture_QR_Scouting\build\url_launcher_android\intermediates\default_proguard_files\global\proguard-android.txt-8.2.2"
+    partialResultsDir="C:\Overture_QR_Scouting\build\url_launcher_android\intermediates\lint_vital_partial_results\release\out">
+  <buildFeatures
+      namespacing="REQUIRED"/>
+  <sourceProviders>
+    <sourceProvider
+        manifests="src\main\AndroidManifest.xml"
+        javaDirectories="src\main\java;src\release\java;src\main\kotlin;src\release\kotlin"
+        resDirectories="src\main\res;src\release\res"
+        assetsDirectories="src\main\assets;src\release\assets"/>
+  </sourceProviders>
+  <testSourceProviders>
+  </testSourceProviders>
+  <testFixturesSourceProviders>
+  </testFixturesSourceProviders>
+  <artifact
+      classOutputs="C:\Overture_QR_Scouting\build\url_launcher_android\intermediates\javac\release\classes;C:\Overture_QR_Scouting\build\url_launcher_android\intermediates\compile_r_class_jar\release\R.jar"
+      type="MAIN"
+      applicationId="io.flutter.plugins.urllauncher"
+      generatedSourceFolders="C:\Overture_QR_Scouting\build\url_launcher_android\generated\ap_generated_sources\release\out;C:\Overture_QR_Scouting\build\url_launcher_android\generated\source\buildConfig\release"
+      generatedResourceFolders="C:\Overture_QR_Scouting\build\url_launcher_android\generated\res\resValues\release"
+      desugaredMethodsFiles="C:\Users\marco\.gradle\caches\transforms-3\c0fd8fd9120a4089816732a8f489ab12\transformed\D8BackportedDesugaredMethods.txt">
+  </artifact>
+</variant>

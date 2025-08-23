@@ -1,25 +1,25 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="C:\OvertureQR\overture_qr_scouting\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc">
+    <ClCompile Include="C:\Overture_QR_Scouting\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\OvertureQR\overture_qr_scouting\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc">
+    <ClCompile Include="C:\Overture_QR_Scouting\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\OvertureQR\overture_qr_scouting\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc">
+    <ClCompile Include="C:\Overture_QR_Scouting\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="C:\OvertureQR\overture_qr_scouting\windows\flutter\CMakeLists.txt" />
+    <CustomBuild Include="C:\Overture_QR_Scouting\windows\flutter\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CMake Rules">
-      <UniqueIdentifier>{D4F3DEF4-7676-3F1B-999F-FF150B08665F}</UniqueIdentifier>
+      <UniqueIdentifier>{F0985E97-E30D-3792-AB7C-64A366706A3F}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{C90EEB48-4397-327D-9D92-DA845FF94DD9}</UniqueIdentifier>
+      <UniqueIdentifier>{3344D637-A10A-3A9D-852D-AA14D5E2F72B}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

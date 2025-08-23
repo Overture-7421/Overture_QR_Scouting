@@ -1,20 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <CustomBuild Include="C:\OvertureQR\overture_qr_scouting\build\windows\x64\CMakeFiles\3a66d008a2cecec06ddd8048d35a602b\flutter_windows.dll.rule">
+    <CustomBuild Include="C:\Overture_QR_Scouting\build\windows\x64\CMakeFiles\2886f61eec9c393791e08fb9d776c41d\flutter_windows.dll.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
-    <CustomBuild Include="C:\OvertureQR\overture_qr_scouting\build\windows\x64\CMakeFiles\7ae7534a80bb275e29fd70eaf23afd6b\flutter_assemble.rule">
+    <CustomBuild Include="C:\Overture_QR_Scouting\build\windows\x64\CMakeFiles\37577358f399d5132222b92813de93a7\flutter_assemble.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
-    <CustomBuild Include="C:\OvertureQR\overture_qr_scouting\windows\flutter\CMakeLists.txt" />
+    <CustomBuild Include="C:\Overture_QR_Scouting\windows\flutter\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="C:\OvertureQR\overture_qr_scouting\build\windows\x64\flutter\CMakeFiles\flutter_assemble" />
+    <None Include="C:\Overture_QR_Scouting\build\windows\x64\flutter\CMakeFiles\flutter_assemble" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CMake Rules">
-      <UniqueIdentifier>{D4F3DEF4-7676-3F1B-999F-FF150B08665F}</UniqueIdentifier>
+      <UniqueIdentifier>{F0985E97-E30D-3792-AB7C-64A366706A3F}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

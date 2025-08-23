@@ -1,33 +1,33 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="C:\OvertureQR\overture_qr_scouting\windows\runner\flutter_window.cpp">
+    <ClCompile Include="C:\Overture_QR_Scouting\windows\runner\flutter_window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\OvertureQR\overture_qr_scouting\windows\runner\main.cpp">
+    <ClCompile Include="C:\Overture_QR_Scouting\windows\runner\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\OvertureQR\overture_qr_scouting\windows\runner\utils.cpp">
+    <ClCompile Include="C:\Overture_QR_Scouting\windows\runner\utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\OvertureQR\overture_qr_scouting\windows\runner\win32_window.cpp">
+    <ClCompile Include="C:\Overture_QR_Scouting\windows\runner\win32_window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\OvertureQR\overture_qr_scouting\windows\flutter\generated_plugin_registrant.cc">
+    <ClCompile Include="C:\Overture_QR_Scouting\windows\flutter\generated_plugin_registrant.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="C:\OvertureQR\overture_qr_scouting\windows\runner\CMakeLists.txt" />
+    <CustomBuild Include="C:\Overture_QR_Scouting\windows\runner\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="C:\OvertureQR\overture_qr_scouting\windows\runner\Runner.rc">
+    <ResourceCompile Include="C:\Overture_QR_Scouting\windows\runner\Runner.rc">
       <Filter>Source Files</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{C90EEB48-4397-327D-9D92-DA845FF94DD9}</UniqueIdentifier>
+      <UniqueIdentifier>{3344D637-A10A-3A9D-852D-AA14D5E2F72B}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
