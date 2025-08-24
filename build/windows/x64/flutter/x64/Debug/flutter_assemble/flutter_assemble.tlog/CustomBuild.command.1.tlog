@@ -1,0 +1,28 @@
+^C:\OVERTURE_QR_SCOUTING\BUILD\WINDOWS\X64\CMAKEFILES\2886F61EEC9C393791E08FB9D776C41D\FLUTTER_WINDOWS.DLL.RULE
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E env FLUTTER_ROOT=C:\FlutterSDK\flutter PROJECT_DIR=C:\Overture_QR_Scouting FLUTTER_ROOT=C:\FlutterSDK\flutter FLUTTER_EPHEMERAL_DIR=C:\Overture_QR_Scouting\windows\flutter\ephemeral PROJECT_DIR=C:\Overture_QR_Scouting FLUTTER_TARGET=C:\Overture_QR_Scouting\lib\main.dart DART_OBFUSCATION=false TRACK_WIDGET_CREATION=true TREE_SHAKE_ICONS=false PACKAGE_CONFIG=C:\Overture_QR_Scouting\.dart_tool\package_config.json C:/FlutterSDK/flutter/packages/flutter_tools/bin/tool_backend.bat windows-x64 Debug
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\OVERTURE_QR_SCOUTING\BUILD\WINDOWS\X64\CMAKEFILES\37577358F399D5132222B92813DE93A7\FLUTTER_ASSEMBLE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\OVERTURE_QR_SCOUTING\WINDOWS\FLUTTER\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Overture_QR_Scouting/windows -BC:/Overture_QR_Scouting/build/windows/x64 --check-stamp-file C:/Overture_QR_Scouting/build/windows/x64/flutter/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
