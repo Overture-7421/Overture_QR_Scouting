@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "698275972508",
+    "project_id": "overture-6c8e3",
+    "storage_bucket": "overture-6c8e3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:698275972508:android:d0f3bd0595ea1aa5dff459",
+        "android_client_info": {
+          "package_name": "com.example.overture_qr_scouting"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6hxdWhw5paOxaOMOtpft3ifqN8-0DVmY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

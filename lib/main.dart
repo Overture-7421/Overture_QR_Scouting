@@ -1,11 +1,16 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:overture_qr_scouting/firebase_options.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
-void main() {
+Future<void> main() async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+);
   runApp(const ScoutingApp());
 }
 
