@@ -16,39 +16,37 @@
       "title": "AUTONOMOUS",
       "fields": [
         {"type": "switch", "label": "MOVED?", "key": "moved"},
-        {"type": "counter", "label": "CORAL L1 SCORED", "key": "coralL1Auto"},
-        {"type": "counter", "label": "CORAL L2 SCORED", "key": "coralL2Auto"},
-        {"type": "counter", "label": "CORAL L3 SCORED", "key": "coralL3Auto"},
-        {"type": "counter", "label": "CORAL L4 SCORED", "key": "coralL4Auto"},
-        {"type": "counter", "label": "BARGE ALGAE SCORED", "key": "bargeAlgaeAuto"},
-        {"type": "counter", "label": "PROCESSOR ALGAE SCORED", "key": "processorAlgaeAuto"},
-        {"type": "switch", "label": "DISLODGED ALGAE?", "key": "dislodgedAlgaeAuto"},
+        {"type": "counter", "label": "ARTIFACTS", "key": "artifactsAuto"},
+        {"type": "counter", "label": "ARTIFACTS IN PATTERN", "key": "artifactsInPatternAuto"},
+        {"type": "counter", "label": "OVERFLOW ARTIFACTS", "key": "overflowArtifactsAuto"},
+        {"type": "counter", "label": "FAILED ARTIFACTS", "key": "failedArtifactsAuto"},
+        {"type": "counter", "label": "DEPOT PLACED", "key": "depotPlacedAuto"},
+        {"type": "counter", "label": "ARTIFACTS FAILED", "key": "artifactsFailedAuto"},
         {"type": "counter", "label": "AUTO FOUL", "key": "autoFoul"}
       ]
     },
     {
       "title": "TELEOP",
       "fields": [
-        {"type": "switch", "label": "DISLODGED ALGAE?", "key": "dislodgedAlgaeTeleop"},
         {"type": "dropdown", "label": "PICKUP LOCATION", "key": "pickupLocation", "options": ["Ground", "Source", "Both"]},
-        {"type": "counter", "label": "CORAL L1 SCORED", "key": "coralL1Teleop"},
-        {"type": "counter", "label": "CORAL L2 SCORED", "key": "coralL2Teleop"},
-        {"type": "counter", "label": "CORAL L3 SCORED", "key": "coralL3Teleop"},
-        {"type": "counter", "label": "CORAL L4 SCORED", "key": "coralL4Teleop"},
-        {"type": "counter", "label": "BARGE ALGAE SCORED", "key": "bargeAlgaeTeleop"},
-        {"type": "counter", "label": "PROCESSOR ALGAE SCORED", "key": "processorAlgaeTeleop"},
-        {"type": "switch", "label": "CROSSED FIELD/PLAYED DEFENSE?", "key": "crossedFieldDefense"},
-        {"type": "switch", "label": "TIPPED/FELL OVER?", "key": "tippedFell"},
-        {"type": "counter", "label": "TOUCHED OPPOSING CAGE", "key": "touchedOpposingCage"},
+        {"type": "counter", "label": "ARTIFACTS", "key": "artifacts"},
+        {"type": "counter", "label": "ARTIFACTS IN PATTERN", "key": "artifactsInPattern"},
+        {"type": "counter", "label": "OVERFLOW ARTIFACTS", "key": "overflowArtifacts"},
+        {"type": "counter", "label": "FAILED ARTIFACTS", "key": "failedArtifacts"},
+        {"type": "counter", "label": "DEPOT PLACED", "key": "depotPlaced"},
+        {"type": "counter", "label": "ARTIFACTS FAILED", "key": "artifactsFailed"},
+        {"type": "counter", "label": "FOUL", "key": "foul"},
         {"type": "switch", "label": "DIED?", "key": "died"}
       ]
     },
     {
       "title": "ENDGAME",
       "fields": [
-        {"type": "dropdown", "label": "END POSITION", "key": "endPosition", "options": ["None", "Parked", "Shallow Climb", "Deep Climb"]},
+        {"type": "dropdown", "label": "END POSITION", "key": "endPosition", "options": ["None", "Partially Parked", "Fully Parked", "Double Park"]},
         {"type": "switch", "label": "BROKE?", "key": "broke"},
         {"type": "switch", "label": "DEFENDED?", "key": "defended"},
+        {"type": "switch", "label": "TIPPED/FELL OVER?", "key": "tippedFell"},
+        {"type": "counter", "label": "TOUCHED OPPOSING RAMP", "key": "touchedOpposingRamp"},
         {"type": "switch", "label": "CORAL HP MISTAKE?", "key": "coralHpMistake"},
         {"type": "dropdown", "label": "YELLOW/RED CARD", "key": "yellowRedCard", "options": ["None", "Yellow Card", "Red Card"]}
       ]
