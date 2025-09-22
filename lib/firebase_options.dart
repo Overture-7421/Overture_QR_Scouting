@@ -23,10 +23,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         return macos;
       case TargetPlatform.windows:
@@ -44,39 +41,49 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAuK8ZUrYY8PQk5Ol-ucxU7C2_kmRFPaXs',
-    appId: '1:698275972508:web:40e7b72631cad6a1dff459',
-    messagingSenderId: '698275972508',
-    projectId: 'overture-6c8e3',
-    authDomain: 'overture-6c8e3.firebaseapp.com',
-    storageBucket: 'overture-6c8e3.firebasestorage.app',
-    measurementId: 'G-FX0YLGBB3V',
+    apiKey: 'AIzaSyAyTKK5YAaYv7OzzAkpMZaistz9Vnbqmzo',
+    appId: '1:878951145860:web:abeb6da200d510a2d9fdd1',
+    messagingSenderId: '878951145860',
+    projectId: 'ftcovertureqr',
+    authDomain: 'ftcovertureqr.firebaseapp.com',
+    storageBucket: 'ftcovertureqr.firebasestorage.app',
+    measurementId: 'G-RSPJHLQVKD',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyB6hxdWhw5paOxaOMOtpft3ifqN8-0DVmY',
-    appId: '1:698275972508:android:d0f3bd0595ea1aa5dff459',
-    messagingSenderId: '698275972508',
-    projectId: 'overture-6c8e3',
-    storageBucket: 'overture-6c8e3.firebasestorage.app',
+    apiKey: 'AIzaSyBSDqjfaMeVkiOkAeQakYkw3VFZAyHvywY',
+    appId: '1:878951145860:android:21a3089d3ba4de9ad9fdd1',
+    messagingSenderId: '878951145860',
+    projectId: 'ftcovertureqr',
+    storageBucket: 'ftcovertureqr.firebasestorage.app',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDt36WUl5Kq9mSDC_wdv2SPH_KOl6oD2B4',
-    appId: '1:698275972508:ios:17a08115d9cc65bddff459',
-    messagingSenderId: '698275972508',
-    projectId: 'overture-6c8e3',
-    storageBucket: 'overture-6c8e3.firebasestorage.app',
+    apiKey: 'AIzaSyDfeRtS4xlspTltg9dowCdKtcVyGOrAiEM',
+    appId: '1:878951145860:ios:a9d25e3285679037d9fdd1',
+    messagingSenderId: '878951145860',
+    projectId: 'ftcovertureqr',
+    storageBucket: 'ftcovertureqr.firebasestorage.app',
     iosBundleId: 'com.example.overtureQrScouting',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyAuK8ZUrYY8PQk5Ol-ucxU7C2_kmRFPaXs',
-    appId: '1:698275972508:web:be5ef1b28f86b728dff459',
-    messagingSenderId: '698275972508',
-    projectId: 'overture-6c8e3',
-    authDomain: 'overture-6c8e3.firebaseapp.com',
-    storageBucket: 'overture-6c8e3.firebasestorage.app',
-    measurementId: 'G-3QBPBV45GH',
+    apiKey: 'AIzaSyAyTKK5YAaYv7OzzAkpMZaistz9Vnbqmzo',
+    appId: '1:878951145860:web:b19f0db916e11f3fd9fdd1',
+    messagingSenderId: '878951145860',
+    projectId: 'ftcovertureqr',
+    authDomain: 'ftcovertureqr.firebaseapp.com',
+    storageBucket: 'ftcovertureqr.firebasestorage.app',
+    measurementId: 'G-ZXXDM33T97',
   );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyDfeRtS4xlspTltg9dowCdKtcVyGOrAiEM',
+    appId: '1:878951145860:ios:a9d25e3285679037d9fdd1',
+    messagingSenderId: '878951145860',
+    projectId: 'ftcovertureqr',
+    storageBucket: 'ftcovertureqr.firebasestorage.app',
+    iosBundleId: 'com.example.overtureQrScouting',
+  );
+
 }

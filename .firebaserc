@@ -1,5 +1,9 @@
 {
   "projects": {
-    "default": "overture-6c8e3"
-  }
+    "default": "ftcovertureqr",
+    "ftc": "overture-ftc",
+    "ftcQR": "ftcovertureqr"
+  },
+  "targets": {},
+  "etags": {}
 }
