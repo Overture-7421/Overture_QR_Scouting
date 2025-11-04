@@ -227,14 +227,25 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
       
       // Initialize external Firebase app if enabled
       if (_externalFirebaseEnabled && _externalDatabaseURL != null && _externalDatabaseURL!.isNotEmpty) {
+        // Validate that we're not using placeholder values
+        if (_externalDatabaseURL!.contains('YOUR_EXTERNAL_PROJECT') || 
+            _externalDatabaseURL!.contains('your-project') ||
+            _externalDatabaseURL!.contains('your-external-project')) {
+          debugPrint('External Firebase database URL contains placeholder values. Please update external_firebase_config.json with your actual database URL.');
+          setState(() {
+            _externalFirebaseEnabled = false;
+          });
+          return;
+        }
+        
         try {
           _externalFirebaseApp = await Firebase.initializeApp(
             name: 'external_scouting_db',
             options: FirebaseOptions(
-              apiKey: 'AIzaSyDummy', // This is just a placeholder for the database URL
+              apiKey: 'PLACEHOLDER_NOT_USED_FOR_RTDB', // RTDB auth is handled by security rules, not API key
               appId: '1:000000000000:web:0000000000000000000000',
               messagingSenderId: '000000000000',
-              projectId: 'external-project',
+              projectId: 'external-project-placeholder',
               databaseURL: _externalDatabaseURL,
             ),
           );
@@ -284,9 +295,10 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
       debugPrint('Failed to send data to external Firebase: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to send data to external database: $e'),
+          const SnackBar(
+            content: Text('Failed to send data to external database. Please check your connection and database configuration.'),
             backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
           ),
         );
       }
@@ -770,7 +782,9 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
     final String qrData = data.join('\t');
     final String columnData = columnHeaders.join(',');
     
-    // Send data to external Firebase if enabled
+    // Send data to external Firebase if enabled (async, non-blocking)
+    // We don't await this so the QR code dialog shows immediately
+    // Success/error feedback is shown via SnackBar from within the method
     _sendDataToExternalFirebase(scoutingDataMap);
     
     showDialog(
