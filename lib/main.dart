@@ -353,16 +353,19 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
     for (final entry in formData.entries) {
       final databaseKey = keyMapping[entry.key];
       if (databaseKey != null) {
-        // Convert string values to appropriate types
         var value = entry.value;
         
-        // Convert string "true"/"false" to boolean
-        if (value is String && (value.toLowerCase() == 'true' || value.toLowerCase() == 'false')) {
-          value = value.toLowerCase() == 'true';
-        }
-        // Convert numeric strings to numbers for counter fields
-        else if (value is String && int.tryParse(value) != null) {
-          value = int.parse(value);
+        // Convert string values to appropriate types for number fields
+        if (value is String && value.isNotEmpty) {
+          // Try to parse as int for numeric fields
+          final intValue = int.tryParse(value);
+          if (intValue != null) {
+            value = intValue;
+          }
+          // Convert "true"/"false" strings to boolean
+          else if (value.toLowerCase() == 'true' || value.toLowerCase() == 'false') {
+            value = value.toLowerCase() == 'true';
+          }
         }
         
         formatted[databaseKey] = value;
@@ -888,13 +891,16 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
       for (final field in section.fields) {
         columnHeaders.add(field.label);
         String value;
+        dynamic rawValue;
         if (field.type == 'text' || field.type == 'number') {
           value = _controllers[field.key]?.text ?? '';
+          rawValue = value;
         } else {
-          value = _formData[field.key]?.toString() ?? '';
+          rawValue = _formData[field.key];
+          value = rawValue?.toString() ?? '';
         }
         data.add(value);
-        scoutingDataMap[field.key] = value;
+        scoutingDataMap[field.key] = rawValue;
       }
     }
     
