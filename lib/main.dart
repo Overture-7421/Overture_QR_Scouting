@@ -135,6 +135,19 @@ class _ParsedSchedule {
   const _ParsedSchedule({required this.eventName, required this.assignments, required this.groupedByScouter});
 }
 
+class _DatabaseTarget {
+  final String name;
+  final String pathTemplate;
+  _DatabaseTarget({required this.name, required this.pathTemplate});
+
+  factory _DatabaseTarget.fromJson(Map<String, dynamic> json) {
+    return _DatabaseTarget(
+      name: json['name'],
+      pathTemplate: json['path_template'],
+    );
+  }
+}
+
 class _ScoutingHomePageState extends State<ScoutingHomePage> {
   // Form state
   Map<String, dynamic> _formData = {};
@@ -159,6 +172,10 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
   String? _externalDatabaseURL;
   bool _externalFirebaseEnabled = false;
   FirebaseApp? _externalFirebaseApp;
+
+  // Database target selection state
+  List<_DatabaseTarget> _databaseTargets = [];
+  _DatabaseTarget? _selectedDatabaseTarget;
 
   @override
   void initState() {
@@ -196,6 +213,9 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
     
     // Load external Firebase configuration
     await _loadExternalFirebaseConfig();
+    
+    // Load database configuration
+    await _loadDatabaseConfig();
   }
 
   Future<void> _loadDefaultSchedule() async {
@@ -267,7 +287,109 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
     }
   }
 
-  Future<void> _sendDataToExternalFirebase(Map<String, dynamic> scoutingData) async {
+  Future<void> _loadDatabaseConfig() async {
+    try {
+      final String configString = await rootBundle.loadString('lib/database_config.json');
+      final Map<String, dynamic> config = json.decode(configString);
+      final List<_DatabaseTarget> targets = (config['databases'] as List)
+          .map((d) => _DatabaseTarget.fromJson(d))
+          .toList();
+      setState(() {
+        _databaseTargets = targets;
+        // Set OffSeasonAllStar as default
+        _selectedDatabaseTarget = targets.firstWhere(
+          (t) => t.name == 'OffSeasonAllStar',
+          orElse: () => targets.isNotEmpty ? targets.first : _DatabaseTarget(name: 'Default', pathTemplate: 'scouting_data'),
+        );
+      });
+    } catch (e) {
+      debugPrint('Failed to load database config: $e');
+      // Set default if loading fails
+      setState(() {
+        _databaseTargets = [_DatabaseTarget(name: 'Default', pathTemplate: 'scouting_data')];
+        _selectedDatabaseTarget = _databaseTargets.first;
+      });
+    }
+  }
+
+  Map<String, dynamic> _formatDataForDatabase(Map<String, dynamic> formData) {
+    // Create the mapping from formData keys to database keys
+    final Map<String, String> keyMapping = {
+      'scouterInitials': 'SCOUTER INITIALS',
+      'robot': 'ROBOT',
+      'futureAlliance': 'FUTURE ALLIANCE IN QUALY?',
+      'startingPosition': 'STARTING POSITION',
+      'noShow': 'NO SHOW',
+      'moved': 'MOVED?',
+      'coralL1Auto': 'CORAL L1 SCORED AUTO',
+      'coralL2Auto': 'CORAL L2 SCORED AUTO',
+      'coralL3Auto': 'CORAL L3 SCORED AUTO',
+      'coralL4Auto': 'CORAL L4 SCORED AUTO',
+      'bargeAlgaeAuto': 'BARGE ALGAE SCORED AUTO',
+      'processorAlgaeAuto': 'PROCESSOR ALGAE SCORED AUTO',
+      'dislodgedAlgaeAuto': 'DISLODGED ALGAE? AUTO',
+      'autoFoul': 'AUTO FOUL',
+      'dislodgedAlgaeTeleop': 'DISLODGED ALGAE? TELEOP',
+      'pickupLocation': 'PICKUP LOCATION',
+      'coralL1Teleop': 'CORAL L1 SCORED TELEOP',
+      'coralL2Teleop': 'CORAL L2 SCORED TELEOP',
+      'coralL3Teleop': 'CORAL L3 SCORED TELEOP',
+      'coralL4Teleop': 'CORAL L4 SCORED TELEOP',
+      'bargeAlgaeTeleop': 'BARGE ALGAE SCORED TELEOP',
+      'processorAlgaeTeleop': 'PROCESSOR ALGAE SCORED TELEOP',
+      'crossedFieldDefense': 'CROSSED FIELD/PLAYED DEFENSE?',
+      'tippedFell': 'TIPPED/FELL OVER?',
+      'touchedOpposingCage': 'TOUCHED OPPOSING CAGE',
+      'died': 'DIED?',
+      'endPosition': 'END POSITION',
+      'broke': 'BROKE?',
+      'defended': 'DEFENDED?',
+      'coralHpMistake': 'CORAL HP MISTAKE?',
+      'yellowRedCard': 'YELLOW/RED CARD',
+    };
+
+    final Map<String, dynamic> formatted = {};
+    
+    for (final entry in formData.entries) {
+      final databaseKey = keyMapping[entry.key];
+      if (databaseKey != null) {
+        // Convert string values to appropriate types
+        var value = entry.value;
+        
+        // Convert string "true"/"false" to boolean
+        if (value is String && (value.toLowerCase() == 'true' || value.toLowerCase() == 'false')) {
+          value = value.toLowerCase() == 'true';
+        }
+        // Convert numeric strings to numbers for counter fields
+        else if (value is String && int.tryParse(value) != null) {
+          value = int.parse(value);
+        }
+        
+        formatted[databaseKey] = value;
+      }
+    }
+    
+    return formatted;
+  }
+
+  String _generateDatabasePath(Map<String, dynamic> formData) {
+    if (_selectedDatabaseTarget == null) {
+      return 'scouting_data';
+    }
+
+    String path = _selectedDatabaseTarget!.pathTemplate;
+    
+    // Replace placeholders with actual values
+    final teamNumber = formData['teamNumber']?.toString() ?? '';
+    final matchNumber = formData['matchNumber']?.toString() ?? '';
+    
+    path = path.replaceAll('{teamNumber}', teamNumber);
+    path = path.replaceAll('{matchNumber}', matchNumber);
+    
+    return path;
+  }
+
+  Future<void> _sendDataToExternalFirebase(String path, Map<String, dynamic> scoutingData) async {
     if (!_externalFirebaseEnabled || _externalFirebaseApp == null) {
       return;
     }
@@ -275,16 +397,10 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
     try {
       final DatabaseReference ref = FirebaseDatabase.instanceFor(
         app: _externalFirebaseApp!,
-      ).ref('scouting_data');
+      ).ref(path);
       
-      // Add timestamp to data
-      final dataWithTimestamp = {
-        ...scoutingData,
-        'timestamp': ServerValue.timestamp,
-      };
-      
-      // Push data to database
-      await ref.push().set(dataWithTimestamp);
+      // Set data at the specified path
+      await ref.set(scoutingData);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -788,7 +904,12 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
     // Send data to external Firebase if enabled (async, non-blocking)
     // We don't await this so the QR code dialog shows immediately
     // Success/error feedback is shown via SnackBar from within the method
-    _sendDataToExternalFirebase(scoutingDataMap);
+    if (_externalFirebaseEnabled && _selectedDatabaseTarget != null) {
+      // Format data for database and generate path
+      final formattedData = _formatDataForDatabase(scoutingDataMap);
+      final path = _generateDatabasePath(scoutingDataMap);
+      _sendDataToExternalFirebase(path, formattedData);
+    }
     
     showDialog(
       context: context,
@@ -919,6 +1040,50 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
                     padding: const EdgeInsets.all(10.0),
                     child: _buildYouTubeCard(),
                   ),
+                ),
+              ),
+            // Database selection dropdown
+            if (_externalFirebaseEnabled && _databaseTargets.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Database Target:',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedDatabaseTarget?.name,
+                            isExpanded: true,
+                            items: _databaseTargets.map((target) {
+                              return DropdownMenuItem<String>(
+                                value: target.name,
+                                child: Text(target.name),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _selectedDatabaseTarget = _databaseTargets.firstWhere(
+                                    (t) => t.name == value,
+                                    orElse: () => _databaseTargets.first,
+                                  );
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             // Main form content - takes remaining space
