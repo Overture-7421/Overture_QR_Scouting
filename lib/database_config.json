@@ -6,7 +6,8 @@
     },
     {
       "name": "EquiposFRC",
-      "path_template": "TBD"
+      "path_template": "TBD",
+      "enabled": false
     }
   ]
 }

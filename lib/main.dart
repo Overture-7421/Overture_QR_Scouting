@@ -138,12 +138,14 @@ class _ParsedSchedule {
 class _DatabaseTarget {
   final String name;
   final String pathTemplate;
-  _DatabaseTarget({required this.name, required this.pathTemplate});
+  final bool enabled;
+  _DatabaseTarget({required this.name, required this.pathTemplate, this.enabled = true});
 
   factory _DatabaseTarget.fromJson(Map<String, dynamic> json) {
     return _DatabaseTarget(
       name: json['name'],
       pathTemplate: json['path_template'],
+      enabled: json['enabled'] ?? true,
     );
   }
 }
@@ -291,24 +293,24 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
     try {
       final String configString = await rootBundle.loadString('lib/database_config.json');
       final Map<String, dynamic> config = json.decode(configString);
-      final List<_DatabaseTarget> targets = (config['databases'] as List)
+      final List<_DatabaseTarget> allTargets = (config['databases'] as List)
           .map((d) => _DatabaseTarget.fromJson(d))
           .toList();
+      // Filter to only enabled targets
+      final List<_DatabaseTarget> enabledTargets = allTargets.where((t) => t.enabled).toList();
+      
       setState(() {
-        _databaseTargets = targets;
-        // Set OffSeasonAllStar as default
-        _selectedDatabaseTarget = targets.firstWhere(
-          (t) => t.name == 'OffSeasonAllStar',
-          orElse: () => targets.isNotEmpty ? targets.first : _DatabaseTarget(name: 'Default', pathTemplate: 'scouting_data'),
-        );
+        _databaseTargets = enabledTargets;
+        if (enabledTargets.isNotEmpty) {
+          // Set OffSeasonAllStar as default if available
+          _selectedDatabaseTarget = enabledTargets.firstWhere(
+            (t) => t.name == 'OffSeasonAllStar',
+            orElse: () => enabledTargets.first,
+          );
+        }
       });
     } catch (e) {
       debugPrint('Failed to load database config: $e');
-      // Set default if loading fails
-      setState(() {
-        _databaseTargets = [_DatabaseTarget(name: 'Default', pathTemplate: 'scouting_data')];
-        _selectedDatabaseTarget = _databaseTargets.first;
-      });
     }
   }
 
@@ -363,8 +365,11 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
             value = intValue;
           }
           // Convert "true"/"false" strings to boolean
-          else if (value.toLowerCase() == 'true' || value.toLowerCase() == 'false') {
-            value = value.toLowerCase() == 'true';
+          else {
+            final lowerValue = value.toLowerCase();
+            if (lowerValue == 'true' || lowerValue == 'false') {
+              value = lowerValue == 'true';
+            }
           }
         }
         
@@ -385,6 +390,16 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
     // Replace placeholders with actual values
     final teamNumber = formData['teamNumber']?.toString() ?? '';
     final matchNumber = formData['matchNumber']?.toString() ?? '';
+    
+    // Validate that required placeholders have values
+    if (path.contains('{teamNumber}') && teamNumber.isEmpty) {
+      debugPrint('Warning: teamNumber is empty, using fallback path');
+      return 'scouting_data';
+    }
+    if (path.contains('{matchNumber}') && matchNumber.isEmpty) {
+      debugPrint('Warning: matchNumber is empty, using fallback path');
+      return 'scouting_data';
+    }
     
     path = path.replaceAll('{teamNumber}', teamNumber);
     path = path.replaceAll('{matchNumber}', matchNumber);
