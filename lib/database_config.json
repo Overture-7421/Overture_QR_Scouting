@@ -1,0 +1,13 @@
+{
+  "databases": [
+    {
+      "name": "OffSeasonAllStar",
+      "path_template": "{teamNumber}/Matches/Match {matchNumber}"
+    },
+    {
+      "name": "EquiposFRC",
+      "path_template": "PLACEHOLDER_PATH_NOT_DEFINED",
+      "enabled": false
+    }
+  ]
+}
