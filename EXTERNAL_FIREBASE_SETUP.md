@@ -89,10 +89,28 @@ scouting_data/
 
 The app now automatically loads the schedule from `lib/sample_schedule.txt` when it starts. Users can still upload their own schedule files, which will override the default.
 
-To update the default schedule:
+### Updating the Default Schedule
+
+To update the default schedule that's bundled with the app:
 
 1. Edit `lib/sample_schedule.txt` with your event information
-2. Rebuild and redeploy the app
+2. Follow the format shown in `sample_schedule.example.txt`:
+   ```
+   Event: Your Event Name 2025
+   # ScouterID , Match , Position , Team
+   SCOUTER1, 1, Blue 1, 1234
+   SCOUTER1, 2, Blue 3, 7890
+   SCOUTER2, 1, Blue 2, 4321
+   ```
+3. Rebuild the app: `flutter build web` (or your target platform)
+4. Redeploy: `firebase deploy --only hosting`
+
+### How It Works
+
+- On app startup, the default schedule from `lib/sample_schedule.txt` is automatically loaded
+- If no default schedule exists or it fails to load, the app continues normally without a schedule
+- Users can upload their own schedule file at any time, which replaces the default
+- The "Load Schedule" button in the app toolbar allows users to upload custom schedules
 
 ## Disabling External Firebase
 

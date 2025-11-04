@@ -1,0 +1,13 @@
+{
+  "databaseURL": "https://your-external-project-default-rtdb.firebaseio.com",
+  "enabled": false,
+  "_comment": "To enable external Firebase database integration:",
+  "_instructions": [
+    "1. Create a Firebase Realtime Database in your external Firebase project",
+    "2. Copy the database URL from the Firebase Console",
+    "3. Replace 'your-external-project-default-rtdb.firebaseio.com' with your actual database URL",
+    "4. Set 'enabled' to true",
+    "5. Rebuild and redeploy your app",
+    "6. See EXTERNAL_FIREBASE_SETUP.md for detailed instructions"
+  ]
+}
