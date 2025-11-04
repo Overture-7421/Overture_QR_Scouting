@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:overture_qr_scouting/firebase_options.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -154,6 +155,11 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
   bool _showVideo = false;
   String? _currentVideoId;
 
+  // External Firebase state
+  String? _externalDatabaseURL;
+  bool _externalFirebaseEnabled = false;
+  FirebaseApp? _externalFirebaseApp;
+
   @override
   void initState() {
     super.initState();
@@ -184,6 +190,122 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
       }
       _configLoaded = true;
     });
+    
+    // Load default schedule
+    await _loadDefaultSchedule();
+    
+    // Load external Firebase configuration
+    await _loadExternalFirebaseConfig();
+  }
+
+  Future<void> _loadDefaultSchedule() async {
+    try {
+      final String scheduleText = await rootBundle.loadString('lib/sample_schedule.txt');
+      final _ParsedSchedule parsed = _parseScheduleText(scheduleText);
+      if (parsed.assignments.isNotEmpty) {
+        setState(() {
+          _eventName = parsed.eventName;
+          _scheduleByScouter
+            ..clear()
+            ..addAll(parsed.groupedByScouter);
+        });
+      }
+    } catch (e) {
+      // If default schedule doesn't exist or fails to load, just continue without it
+      debugPrint('Failed to load default schedule: $e');
+    }
+  }
+
+  Future<void> _loadExternalFirebaseConfig() async {
+    try {
+      final String configString = await rootBundle.loadString('lib/external_firebase_config.json');
+      final Map<String, dynamic> config = json.decode(configString);
+      setState(() {
+        _externalDatabaseURL = config['databaseURL'] as String?;
+        _externalFirebaseEnabled = config['enabled'] as bool? ?? false;
+      });
+      
+      // Initialize external Firebase app if enabled
+      if (_externalFirebaseEnabled && _externalDatabaseURL != null && _externalDatabaseURL!.isNotEmpty) {
+        // Validate that we're not using placeholder values
+        if (_externalDatabaseURL!.contains('YOUR_EXTERNAL_PROJECT') || 
+            _externalDatabaseURL!.contains('your-project') ||
+            _externalDatabaseURL!.contains('your-external-project')) {
+          debugPrint('External Firebase database URL contains placeholder values. Please update external_firebase_config.json with your actual database URL.');
+          setState(() {
+            _externalFirebaseEnabled = false;
+          });
+          return;
+        }
+        
+        try {
+          _externalFirebaseApp = await Firebase.initializeApp(
+            name: 'external_scouting_db',
+            options: FirebaseOptions(
+              // Note: These are placeholder values. For Realtime Database access,
+              // authentication and authorization are controlled by database security rules,
+              // not by these API credentials. The databaseURL is the only critical value.
+              apiKey: 'PLACEHOLDER_NOT_USED_FOR_RTDB',
+              appId: '1:000000000000:web:0000000000000000000000',
+              messagingSenderId: '000000000000',
+              projectId: 'external-project-placeholder',
+              databaseURL: _externalDatabaseURL,
+            ),
+          );
+        } catch (e) {
+          debugPrint('Failed to initialize external Firebase app: $e');
+          // If app already exists, get it
+          try {
+            _externalFirebaseApp = Firebase.app('external_scouting_db');
+          } catch (e2) {
+            debugPrint('Failed to get existing external Firebase app: $e2');
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to load external Firebase config: $e');
+    }
+  }
+
+  Future<void> _sendDataToExternalFirebase(Map<String, dynamic> scoutingData) async {
+    if (!_externalFirebaseEnabled || _externalFirebaseApp == null) {
+      return;
+    }
+
+    try {
+      final DatabaseReference ref = FirebaseDatabase.instanceFor(
+        app: _externalFirebaseApp!,
+      ).ref('scouting_data');
+      
+      // Add timestamp to data
+      final dataWithTimestamp = {
+        ...scoutingData,
+        'timestamp': ServerValue.timestamp,
+      };
+      
+      // Push data to database
+      await ref.push().set(dataWithTimestamp);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Data successfully sent to external database!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Failed to send data to external Firebase: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to send data to external database. Please check your connection and database configuration.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _pickAndLoadConfig() async {
@@ -644,18 +766,30 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
   void _commitData() {
     final List<String> data = [];
     final List<String> columnHeaders = [];
+    final Map<String, dynamic> scoutingDataMap = {};
+    
     for (final section in _sections) {
       for (final field in section.fields) {
         columnHeaders.add(field.label);
+        String value;
         if (field.type == 'text' || field.type == 'number') {
-          data.add(_controllers[field.key]?.text ?? '');
+          value = _controllers[field.key]?.text ?? '';
         } else {
-          data.add(_formData[field.key]?.toString() ?? '');
+          value = _formData[field.key]?.toString() ?? '';
         }
+        data.add(value);
+        scoutingDataMap[field.key] = value;
       }
     }
+    
     final String qrData = data.join('\t');
     final String columnData = columnHeaders.join(',');
+    
+    // Send data to external Firebase if enabled (async, non-blocking)
+    // We don't await this so the QR code dialog shows immediately
+    // Success/error feedback is shown via SnackBar from within the method
+    _sendDataToExternalFirebase(scoutingDataMap);
+    
     showDialog(
       context: context,
       builder: (BuildContext context) {

@@ -1,0 +1,18 @@
+Event: Your Event Name 2025
+# ScouterID , Match , Position , Team
+# 
+# This is the default schedule that will be loaded automatically when the app starts.
+# Users can still upload their own schedule files to override this default.
+# 
+# Format: ScouterID, Match Number, Robot Position, Team Number
+# Separators: Commas, tabs, or multiple spaces
+# Lines starting with # are comments
+# 
+# Example entries:
+SCOUTER1, 1, Blue 1, 1234
+SCOUTER1, 2, Blue 3, 7890
+SCOUTER2, 1, Blue 2, 4321
+SCOUTER2, 3, Red 3, 8765
+# 
+# Replace the example entries above with your actual event schedule
+# Then rebuild and redeploy the app

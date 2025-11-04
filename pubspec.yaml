@@ -24,3 +24,5 @@ flutter:
   uses-material-design: true
   assets:
     - lib/config.json
+    - lib/sample_schedule.txt
+    - lib/external_firebase_config.json

@@ -22,6 +22,8 @@ The primary goal is to streamline the scouting process by allowing scouters to q
 *   **Form Reset:** Quickly clears most fields and increments the match number for the next match, keeping scouter initials and robot selection.
 *   **Dark Theme:** Features a visually appealing dark theme suitable for event environments.
 *   **Schedule Import (.txt):** Load a simple .txt with Event name, Scouter IDs, their assigned matches, robot positions (Blue 1..Red 3), and team numbers. After loading, the app pops up for Scouter ID, then offers that scouter’s matches and auto-fills scouter, match number, robot position, and team.
+*   **Default Schedule:** The app automatically loads a default schedule from the project on startup. Users can override this by uploading their own schedule file.
+*   **External Firebase Database Integration:** Optionally send all scouting data to an external Firebase Realtime Database for centralized data storage and analysis. See [EXTERNAL_FIREBASE_SETUP.md](EXTERNAL_FIREBASE_SETUP.md) for configuration instructions.
 
 ## How to Use
 
