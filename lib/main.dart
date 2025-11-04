@@ -242,7 +242,10 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
           _externalFirebaseApp = await Firebase.initializeApp(
             name: 'external_scouting_db',
             options: FirebaseOptions(
-              apiKey: 'PLACEHOLDER_NOT_USED_FOR_RTDB', // RTDB auth is handled by security rules, not API key
+              // Note: These are placeholder values. For Realtime Database access,
+              // authentication and authorization are controlled by database security rules,
+              // not by these API credentials. The databaseURL is the only critical value.
+              apiKey: 'PLACEHOLDER_NOT_USED_FOR_RTDB',
               appId: '1:000000000000:web:0000000000000000000000',
               messagingSenderId: '000000000000',
               projectId: 'external-project-placeholder',
