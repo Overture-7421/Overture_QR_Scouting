@@ -151,6 +151,9 @@ class _DatabaseTarget {
 }
 
 class _ScoutingHomePageState extends State<ScoutingHomePage> {
+  // Constants
+  static const String _fallbackDatabasePath = 'scouting_data';
+  
   // Form state
   Map<String, dynamic> _formData = {};
   List<_SectionConfig> _sections = [];
@@ -349,6 +352,15 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
       'coralHpMistake': 'CORAL HP MISTAKE?',
       'yellowRedCard': 'YELLOW/RED CARD',
     };
+    
+    // Define which fields should be converted to numbers
+    final Set<String> numericFields = {
+      'matchNumber', 'teamNumber',
+      'coralL1Auto', 'coralL2Auto', 'coralL3Auto', 'coralL4Auto',
+      'bargeAlgaeAuto', 'processorAlgaeAuto', 'autoFoul',
+      'coralL1Teleop', 'coralL2Teleop', 'coralL3Teleop', 'coralL4Teleop',
+      'bargeAlgaeTeleop', 'processorAlgaeTeleop', 'touchedOpposingCage',
+    };
 
     final Map<String, dynamic> formatted = {};
     
@@ -357,12 +369,14 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
       if (databaseKey != null) {
         var value = entry.value;
         
-        // Convert string values to appropriate types for number fields
+        // Convert string values to appropriate types
         if (value is String && value.isNotEmpty) {
-          // Try to parse as int for numeric fields
-          final intValue = int.tryParse(value);
-          if (intValue != null) {
-            value = intValue;
+          // Only convert to int for known numeric fields
+          if (numericFields.contains(entry.key)) {
+            final intValue = int.tryParse(value);
+            if (intValue != null) {
+              value = intValue;
+            }
           }
           // Convert "true"/"false" strings to boolean
           else {
@@ -382,7 +396,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
 
   String _generateDatabasePath(Map<String, dynamic> formData) {
     if (_selectedDatabaseTarget == null) {
-      return 'scouting_data';
+      return _fallbackDatabasePath;
     }
 
     String path = _selectedDatabaseTarget!.pathTemplate;
@@ -394,11 +408,11 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
     // Validate that required placeholders have values
     if (path.contains('{teamNumber}') && teamNumber.isEmpty) {
       debugPrint('Warning: teamNumber is empty, using fallback path');
-      return 'scouting_data';
+      return _fallbackDatabasePath;
     }
     if (path.contains('{matchNumber}') && matchNumber.isEmpty) {
       debugPrint('Warning: matchNumber is empty, using fallback path');
-      return 'scouting_data';
+      return _fallbackDatabasePath;
     }
     
     path = path.replaceAll('{teamNumber}', teamNumber);
