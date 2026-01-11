@@ -21,11 +21,11 @@ class ScoutingApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Overture reefscape Scouting',
+      title: 'Overture Rebuilt Scouting',
       theme: ThemeData.dark().copyWith(
         primaryColor: Colors.deepPurpleAccent,
-        scaffoldBackgroundColor: const Color(0xFF121212),
-        cardColor: const Color(0xFF1E1E1E),
+        scaffoldBackgroundColor: const Color(0xFF0A0A0A),
+        cardColor: const Color(0xFF1A1A1A),
         inputDecorationTheme: const InputDecorationTheme(
           border: OutlineInputBorder(),
           focusedBorder: OutlineInputBorder(
@@ -135,7 +135,7 @@ class _ParsedSchedule {
   const _ParsedSchedule({required this.eventName, required this.assignments, required this.groupedByScouter});
 }
 
-class _ScoutingHomePageState extends State<ScoutingHomePage> {
+class _ScoutingHomePageState extends State<ScoutingHomePage> with SingleTickerProviderStateMixin {
   // Form state
   Map<String, dynamic> _formData = {};
   List<_SectionConfig> _sections = [];
@@ -149,6 +149,9 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
 
   // Controllers for text fields
   final Map<String, TextEditingController> _controllers = {};
+
+  // Tab controller for navigation
+  TabController? _tabController;
 
   // YouTube state
   YoutubePlayerController? _ytController;
@@ -174,6 +177,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
         .toList();
     setState(() {
       _sections = sections;
+      _tabController = TabController(length: _sections.length, vsync: this);
       for (final section in _sections) {
         for (final field in section.fields) {
           if (field.type == 'text' || field.type == 'number') {
@@ -319,6 +323,8 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
             .toList();
         setState(() {
           _sections = sections;
+          _tabController?.dispose();
+          _tabController = TabController(length: _sections.length, vsync: this);
           _controllers.clear();
           _formData.clear();
           for (final section in _sections) {
@@ -532,53 +538,163 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
       (a) => a.match == currentMatch,
       orElse: () => list.first,
     );
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5.0),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF2A2A2A),
+            Color(0xFF1F1F1F),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.deepPurpleAccent.withOpacity(0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  _eventName != null ? 'Event: ${_eventName!}' : 'Schedule Loaded',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF9C4DFF), Color(0xFF7C4DFF)],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.event, size: 20, color: Colors.white),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      _eventName != null ? _eventName! : 'Schedule Loaded',
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
                 ),
-                Text('Scouter: ${_selectedScouterId!}', style: const TextStyle(color: Colors.white70)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.deepPurpleAccent.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.deepPurpleAccent.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.person, size: 14, color: Colors.deepPurpleAccent),
+                      const SizedBox(width: 6),
+                      Text(
+                        _selectedScouterId!,
+                        style: const TextStyle(
+                          color: Colors.deepPurpleAccent,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 8),
-            InputDecorator(
-              decoration: const InputDecoration(
-                labelText: 'Select Match',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 12.0),
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF1A1A1A),
+                    Color(0xFF151515),
+                  ],
+                ),
               ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<int>(
-                  value: current.match,
-                  isExpanded: true,
-                  items: list
-                      .map((a) => DropdownMenuItem<int>(
-                            value: a.match,
-                            child: Text('Match ${a.match} — ${a.position} — Team ${a.team}'),
-                          ))
-                      .toList(),
-                  onChanged: (val) {
-                    if (val == null) return;
-                    final _Assignment sel = list.firstWhere((a) => a.match == val, orElse: () => list.first);
-                    setState(() {
-                      _selectedMatchNumber = sel.match;
-                    });
-                    _applyAssignment(sel);
-                  },
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  labelText: 'Match Selection',
+                  labelStyle: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFB0B0B0),
+                    letterSpacing: 0.5,
+                  ),
+                  floatingLabelStyle: const TextStyle(
+                    color: Colors.deepPurpleAccent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    value: current.match,
+                    isExpanded: true,
+                    icon: const Icon(Icons.keyboard_arrow_down, color: Colors.deepPurpleAccent),
+                    items: list
+                        .map((a) => DropdownMenuItem<int>(
+                              value: a.match,
+                              child: Text(
+                                'Match ${a.match} — ${a.position} — Team ${a.team}',
+                                style: const TextStyle(fontWeight: FontWeight.w500),
+                              ),
+                            ))
+                        .toList(),
+                    onChanged: (val) {
+                      if (val == null) return;
+                      final _Assignment sel = list.firstWhere((a) => a.match == val, orElse: () => list.first);
+                      setState(() {
+                        _selectedMatchNumber = sel.match;
+                      });
+                      _applyAssignment(sel);
+                    },
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 6),
-            const Text('Auto-fills scouter, match, position, and team.', style: TextStyle(fontSize: 12, color: Colors.white70)),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.deepPurpleAccent.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: const [
+                  Icon(Icons.auto_awesome, size: 14, color: Colors.deepPurpleAccent),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Auto-fills scouter, match, position, and team.',
+                      style: TextStyle(fontSize: 11, color: Colors.white60, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -589,104 +705,328 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
     switch (field.type) {
       case 'text':
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0),
-          child: TextField(
-            controller: _controllers[field.key],
-            decoration: InputDecoration(
-              labelText: field.label,
-              contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
+          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF1F1F1F),
+                  Color(0xFF2A2A2A),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            onChanged: (val) => _formData[field.key] = val,
+            child: TextField(
+              controller: _controllers[field.key],
+              decoration: InputDecoration(
+                labelText: field.label,
+                labelStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFB0B0B0),
+                  letterSpacing: 0.5,
+                ),
+                floatingLabelStyle: const TextStyle(
+                  color: Colors.deepPurpleAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: Colors.deepPurpleAccent, width: 2.5),
+                ),
+              ),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+              onChanged: (val) => _formData[field.key] = val,
+            ),
           ),
         );
       case 'number':
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0),
-          child: TextField(
-            controller: _controllers[field.key],
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: field.label,
-              contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
+          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF1F1F1F),
+                  Color(0xFF2A2A2A),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            onChanged: (val) => _formData[field.key] = val,
+            child: TextField(
+              controller: _controllers[field.key],
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: field.label,
+                labelStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFB0B0B0),
+                  letterSpacing: 0.5,
+                ),
+                floatingLabelStyle: const TextStyle(
+                  color: Colors.deepPurpleAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: Colors.deepPurpleAccent, width: 2.5),
+                ),
+              ),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+              onChanged: (val) => _formData[field.key] = val,
+            ),
           ),
         );
       case 'dropdown':
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0),
-          child: InputDecorator(
-            decoration: InputDecoration(
-              labelText: field.label,
-              border: const OutlineInputBorder(),
-              contentPadding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 12.0),
+          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF1F1F1F),
+                  Color(0xFF2A2A2A),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _formData[field.key],
-                isExpanded: true,
-                items: field.options!.map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (val) => setState(() => _formData[field.key] = val),
+            child: InputDecorator(
+              decoration: InputDecoration(
+                labelText: field.label,
+                labelStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFB0B0B0),
+                  letterSpacing: 0.5,
+                ),
+                floatingLabelStyle: const TextStyle(
+                  color: Colors.deepPurpleAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 20.0),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _formData[field.key],
+                  isExpanded: true,
+                  icon: const Icon(Icons.keyboard_arrow_down, color: Colors.deepPurpleAccent),
+                  items: field.options!.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                    );
+                  }).toList(),
+                  onChanged: (val) => setState(() => _formData[field.key] = val),
+                ),
               ),
             ),
           ),
         );
       case 'switch':
-        return SwitchListTile(
-          title: Text(field.label),
-          value: _formData[field.key] ?? false,
-          onChanged: (val) => setState(() => _formData[field.key] = val),
-          contentPadding: EdgeInsets.zero,
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF1F1F1F),
+                  Color(0xFF2A2A2A),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: SwitchListTile(
+              title: Text(
+                field.label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              value: _formData[field.key] ?? false,
+              onChanged: (val) => setState(() => _formData[field.key] = val),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+            ),
+          ),
         );
       case 'counter':
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0),
-          child: InputDecorator(
-            decoration: InputDecoration(
-              labelText: field.label,
-              border: const OutlineInputBorder(),
-              contentPadding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 12.0),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Spacer(),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.remove_circle_outline),
-                      onPressed: (_formData[field.key] ?? 0) > 0
-                          ? () => setState(() => _formData[field.key] = (_formData[field.key] ?? 0) - 1)
-                          : null,
-                      color: (_formData[field.key] ?? 0) > 0 ? Colors.redAccent : Colors.grey,
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      tooltip: 'Decrease',
-                    ),
-                    SizedBox(
-                      width: 30,
-                      child: Text(
-                        '${_formData[field.key] ?? 0}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle_outline),
-                      onPressed: () => setState(() => _formData[field.key] = (_formData[field.key] ?? 0) + 1),
-                      color: Colors.greenAccent,
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      tooltip: 'Increase',
-                    ),
-                  ],
+          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF1F1F1F),
+                  Color(0xFF2A2A2A),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
                 ),
               ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    field.label,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFB0B0B0),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(50),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFF0D0D0D),
+                            Color(0xFF1A1A1A),
+                          ],
+                        ),
+                        border: Border.all(
+                          color: Colors.deepPurpleAccent.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: (_formData[field.key] ?? 0) > 0
+                                  ? () => setState(() => _formData[field.key] = (_formData[field.key] ?? 0) - 1)
+                                  : null,
+                              borderRadius: BorderRadius.circular(25),
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: (_formData[field.key] ?? 0) > 0
+                                      ? LinearGradient(
+                                          colors: [Colors.red[400]!, Colors.red[600]!],
+                                        )
+                                      : null,
+                                  color: (_formData[field.key] ?? 0) > 0 ? null : Colors.grey[800],
+                                ),
+                                child: Icon(
+                                  Icons.remove,
+                                  color: (_formData[field.key] ?? 0) > 0 ? Colors.white : Colors.grey[600],
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            width: 80,
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              '${_formData[field.key] ?? 0}',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurpleAccent,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ),
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => setState(() => _formData[field.key] = (_formData[field.key] ?? 0) + 1),
+                              borderRadius: BorderRadius.circular(25),
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: [Colors.green[400]!, Colors.green[600]!],
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.add,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -697,36 +1037,117 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
 
   Widget _buildTabContent(_SectionConfig section) {
     final widgets = section.fields.map(_buildField).toList();
-    
+
     // Add schedule header for PREMATCH section
     if (section.title.toUpperCase().contains('PREMATCH') && _selectedScouterId != null) {
       widgets.insert(0, _buildScheduleHeaderCard());
     }
-    
-    // Add commit/reset buttons for ENDGAME section
-    if (section.title.toUpperCase().contains('ENDGAME')) {
+
+    // Determine current section index
+    final int currentIndex = _sections.indexOf(section);
+    final bool isLastSection = currentIndex == _sections.length - 1;
+
+    // Add navigation/action buttons at the bottom
+    if (isLastSection) {
+      // ENDGAME section - show Commit and Reset buttons
       widgets.add(
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          child: Row(
+          padding: const EdgeInsets.only(top: 32.0, bottom: 16.0),
+          child: Column(
             children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.qr_code_scanner, size: 18),
-                  label: const Text('Commit'),
-                  onPressed: _commitData,
-                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
+              // Commit button (primary action)
+              Container(
+                width: double.infinity,
+                height: 64,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF9C4DFF),
+                      Color(0xFF7C4DFF),
+                      Color(0xFF6A3DE8),
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.deepPurpleAccent.withOpacity(0.5),
+                      blurRadius: 20,
+                      spreadRadius: 0,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _commitData,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.qr_code_scanner, size: 26, color: Colors.white),
+                          SizedBox(width: 14),
+                          Text(
+                            'COMMIT DATA',
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.5,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Reset'),
-                  onPressed: _resetForm,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    backgroundColor: Colors.grey[700],
+              const SizedBox(height: 14),
+              // Reset button (secondary action)
+              Container(
+                width: double.infinity,
+                height: 56,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 2,
+                  ),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      const Color(0xFF2A2A2A).withOpacity(0.5),
+                      const Color(0xFF1F1F1F).withOpacity(0.5),
+                    ],
+                  ),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _resetForm,
+                    borderRadius: BorderRadius.circular(18),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.refresh_rounded, size: 22, color: Colors.white70),
+                          SizedBox(width: 10),
+                          Text(
+                            'RESET FORM',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.2,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -734,8 +1155,68 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
           ),
         ),
       );
+    } else {
+      // Other sections - show NEXT PERIOD button
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 32.0, bottom: 16.0),
+          child: Container(
+            width: double.infinity,
+            height: 64,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF9C4DFF),
+                  Color(0xFF7C4DFF),
+                  Color(0xFF6A3DE8),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.deepPurpleAccent.withOpacity(0.5),
+                  blurRadius: 20,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  if (_tabController != null && currentIndex < _sections.length - 1) {
+                    _tabController!.animateTo(currentIndex + 1);
+                  }
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Text(
+                        'NEXT PERIOD',
+                        style: TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(width: 14),
+                      Icon(Icons.arrow_forward_rounded, size: 26, color: Colors.white),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
     }
-    
+
     final mid = (widgets.length / 2).ceil();
     final left = widgets.sublist(0, mid);
     final right = widgets.sublist(mid);
@@ -744,17 +1225,17 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
         final wide = constraints.maxWidth > 800;
         if (!wide) {
           return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(children: widgets),
           );
         }
         return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(child: Column(children: left)),
-              const SizedBox(width: 10),
+              const SizedBox(width: 20),
               Expanded(child: Column(children: right)),
             ],
           ),
@@ -862,6 +1343,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
   @override
   void dispose() {
     _ytController?.close();
+    _tabController?.dispose();
     for (final controller in _controllers.values) {
       controller.dispose();
     }
@@ -870,65 +1352,139 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_configLoaded) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-    return DefaultTabController(
-      length: _sections.length,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('OVERTURE REEFSCAPE QR SCOUTING OFFICIAL'),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.ondemand_video),
-              tooltip: 'Open YouTube Video',
-              onPressed: _promptForYouTubeLink,
-            ),
-            IconButton(
-              icon: const Icon(Icons.upload_file),
-              tooltip: 'Load Schedule (.txt)',
-              onPressed: _pickAndLoadSchedule,
-            ),
-            IconButton(
-              icon: const Icon(Icons.badge),
-              tooltip: 'Select Scouter ID',
-              onPressed: _scheduleByScouter.isEmpty ? null : _promptForScouterId,
-            ),
-            IconButton(
-              icon: const Icon(Icons.folder_open),
-              tooltip: 'Load Config',
-              onPressed: _pickAndLoadConfig,
-            ),
-          ],
-          bottom: TabBar(
-            isScrollable: true,
-            tabs: _sections.map((s) => Tab(text: s.title)).toList(),
+    if (!_configLoaded || _tabController == null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF0A0A0A),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF9C4DFF), Color(0xFF7C4DFF)],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(Icons.qr_code_scanner, size: 50, color: Colors.white),
+              ),
+              const SizedBox(height: 24),
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurpleAccent),
+              ),
+            ],
           ),
         ),
-        body: Column(
-          children: [
-            // Scrollable header area for video only
-            if (_showVideo)
-              Flexible(
-                flex: 0,
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: _buildYouTubeCard(),
+      );
+    }
+    return Scaffold(
+      backgroundColor: const Color(0xFF0A0A0A),
+      appBar: AppBar(
+        title: ShaderMask(
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [Color(0xFFB388FF), Color(0xFF7C4DFF)],
+          ).createShader(bounds),
+          child: const Text(
+            'OVERTURE REBUILT QR SCOUTING',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.0,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: const Color(0xFF0A0A0A),
+        actions: [
+          _buildAppBarIconButton(Icons.ondemand_video_rounded, 'YouTube Video', _promptForYouTubeLink),
+          _buildAppBarIconButton(Icons.upload_file_rounded, 'Load Schedule', _pickAndLoadSchedule),
+          _buildAppBarIconButton(
+            Icons.badge_rounded,
+            'Select Scouter',
+            _scheduleByScouter.isEmpty ? null : _promptForScouterId,
+          ),
+          _buildAppBarIconButton(Icons.folder_open_rounded, 'Load Config', _pickAndLoadConfig),
+          const SizedBox(width: 8),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Column(
+            children: [
+              TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                indicatorColor: Colors.transparent,
+                indicator: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF9C4DFF), Color(0xFF7C4DFF)],
                   ),
                 ),
+                labelStyle: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white54,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                tabs: _sections.map((s) => Tab(
+                  height: 42,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Text(s.title.toUpperCase()),
+                  ),
+                )).toList(),
               ),
-            // Main form content - takes remaining space
-            Expanded(
-              child: TabBarView(
-                children: _sections.map((section) => _buildTabContent(section)).toList(),
+              const SizedBox(height: 4),
+            ],
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          // Scrollable header area for video only
+          if (_showVideo)
+            Flexible(
+              flex: 0,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: _buildYouTubeCard(),
+                ),
               ),
             ),
-          ],
-        ),
+          // Main form content - takes remaining space
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: _sections.map((section) => _buildTabContent(section)).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBarIconButton(IconData icon, String tooltip, VoidCallback? onPressed) {
+    return Container(
+      margin: const EdgeInsets.only(right: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: onPressed != null ? Colors.white.withOpacity(0.05) : Colors.transparent,
+      ),
+      child: IconButton(
+        icon: Icon(icon, size: 22),
+        tooltip: tooltip,
+        onPressed: onPressed,
+        color: onPressed != null ? Colors.white : Colors.white24,
       ),
     );
   }
@@ -1012,58 +1568,153 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> {
   }
 
   Widget _buildYouTubeCard() {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5.0),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF2A2A2A),
+            Color(0xFF1F1F1F),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.deepPurpleAccent.withOpacity(0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Match Video', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 Row(
                   children: [
-                    IconButton(
-                      tooltip: 'Change Video',
-                      icon: const Icon(Icons.link),
-                      onPressed: _promptForYouTubeLink,
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF9C4DFF), Color(0xFF7C4DFF)],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.ondemand_video_rounded, size: 20, color: Colors.white),
                     ),
-                    IconButton(
-                      tooltip: 'Close Video',
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        setState(() => _showVideo = false);
-                        _ytController?.pauseVideo();
-                      },
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Match Video',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: _promptForYouTubeLink,
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.link_rounded, color: Colors.white70, size: 20),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          setState(() => _showVideo = false);
+                          _ytController?.pauseVideo();
+                        },
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.close_rounded, color: Colors.white70, size: 20),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final screenH = MediaQuery.of(context).size.height;
-                final width = constraints.maxWidth;
-                final idealHeight = width / (16 / 9);
-                // Cap player height between 180 and 40% of screen height to avoid overflow
-                final maxAllowed = screenH * 0.4;
-                final height = idealHeight.clamp(180.0, maxAllowed);
-                return SizedBox(
-                  height: height,
-                  width: double.infinity,
-                  child: _ytController == null
-                      ? const Center(child: Text('No video loaded'))
-                      : YoutubePlayer(controller: _ytController!),
-                );
-              },
+            const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final screenH = MediaQuery.of(context).size.height;
+                  final width = constraints.maxWidth;
+                  final idealHeight = width / (16 / 9);
+                  // Cap player height between 180 and 40% of screen height to avoid overflow
+                  final maxAllowed = screenH * 0.4;
+                  final height = idealHeight.clamp(180.0, maxAllowed);
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    height: height,
+                    width: double.infinity,
+                    child: _ytController == null
+                        ? const Center(child: Text('No video loaded'))
+                        : YoutubePlayer(controller: _ytController!),
+                  );
+                },
+              ),
             ),
             if (_currentVideoId != null)
               Padding(
-                padding: const EdgeInsets.only(top: 6.0),
-                child: Text('Video ID: $_currentVideoId', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                padding: const EdgeInsets.only(top: 12.0),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.deepPurpleAccent.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.play_circle_outline, size: 14, color: Colors.deepPurpleAccent),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Video ID: $_currentVideoId',
+                        style: const TextStyle(
+                          color: Colors.white60,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
           ],
         ),
