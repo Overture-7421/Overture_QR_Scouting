@@ -1,8 +1,8 @@
-# Overture Rebuilt QR Scouting App
+# Overture RebuiltQR Scouting App
 
 ## Overview
 
-This is a Flutter-based scouting application designed for the FIRST Robotics Competition (FRC) game "Rebuilt". The app provides a user-friendly interface for collecting match data during competitions and generates a QR code containing all the gathered information for easy transfer and analysis.
+This is a Flutter-based scouting application designed for the FIRST Robotics Competition (FRC) game "RebuiltQR". The app provides a user-friendly interface for collecting match data during competitions and generates a QR code containing all the gathered information for easy transfer and analysis.
 
 The primary goal is to streamline the scouting process by allowing scouters to quickly input data on a mobile device or desktop and then generate a scannable QR code or copy the data directly.
 
