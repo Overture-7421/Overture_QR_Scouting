@@ -21,7 +21,7 @@ class ScoutingApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Overture Rebuilt Scouting',
+      title: 'RebuiltQR',
       theme: ThemeData.dark().copyWith(
         primaryColor: Colors.deepPurpleAccent,
         scaffoldBackgroundColor: const Color(0xFF0A0A0A),
@@ -1386,7 +1386,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> with SingleTickerPr
             colors: [Color(0xFFB388FF), Color(0xFF7C4DFF)],
           ).createShader(bounds),
           child: const Text(
-            'OVERTURE REBUILT QR SCOUTING',
+            'Overture RebuiltQR',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w900,
