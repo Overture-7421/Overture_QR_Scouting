@@ -48,14 +48,14 @@ class ScoutingApp extends StatelessWidget {
           ),
         ),
         switchTheme: SwitchThemeData(
-          thumbColor: MaterialStateProperty.resolveWith<Color?>((states) {
-            if (states.contains(MaterialState.selected)) {
+          thumbColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(WidgetState.selected)) {
               return Colors.deepPurpleAccent;
             }
             return null;
           }),
-          trackColor: MaterialStateProperty.resolveWith<Color?>((states) {
-            if (states.contains(MaterialState.selected)) {
+          trackColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(WidgetState.selected)) {
               return Colors.deepPurpleAccent.withOpacity(0.5);
             }
             return null;
@@ -69,7 +69,7 @@ class ScoutingApp extends StatelessWidget {
           ),
           textStyle: const TextStyle(color: Colors.white),
           menuStyle: MenuStyle(
-            backgroundColor: MaterialStateProperty.all(const Color(0xFF2A2A2A)),
+            backgroundColor: WidgetStateProperty.all(const Color(0xFF2A2A2A)),
           ),
         ),
         textSelectionTheme: TextSelectionThemeData(
@@ -137,7 +137,7 @@ class _ParsedSchedule {
 
 class _ScoutingHomePageState extends State<ScoutingHomePage> with SingleTickerProviderStateMixin {
   // Form state
-  Map<String, dynamic> _formData = {};
+  final Map<String, dynamic> _formData = {};
   List<_SectionConfig> _sections = [];
   bool _configLoaded = false;
 
@@ -634,9 +634,9 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> with SingleTickerPr
                 decoration: InputDecoration(
                   labelText: 'Match Selection',
                   labelStyle: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFB0B0B0),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFFFFFFF),
                     letterSpacing: 0.5,
                   ),
                   floatingLabelStyle: const TextStyle(
@@ -659,7 +659,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> with SingleTickerPr
                               value: a.match,
                               child: Text(
                                 'Match ${a.match} — ${a.position} — Team ${a.team}',
-                                style: const TextStyle(fontWeight: FontWeight.w500),
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                               ),
                             ))
                         .toList(),
@@ -730,15 +730,32 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> with SingleTickerPr
               decoration: InputDecoration(
                 labelText: field.label,
                 labelStyle: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFFB0B0B0),
-                  letterSpacing: 0.5,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFFFFFFFF),
+                  letterSpacing: 0.8,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(0, 1),
+                      blurRadius: 4.0,
+                      color: Color(0x88000000),
+                    ),
+                  ],
                 ),
                 floatingLabelStyle: const TextStyle(
-                  color: Colors.deepPurpleAccent,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 19,
+                  color: Color(0xFFFFFFFF),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(0, 1),
+                      blurRadius: 4.0,
+                      color: Color(0x88000000),
+                    ),
+                  ],
                 ),
+                floatingLabelBehavior: FloatingLabelBehavior.always,
                 contentPadding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -749,7 +766,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> with SingleTickerPr
                   borderSide: const BorderSide(color: Colors.deepPurpleAccent, width: 2.5),
                 ),
               ),
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700),
               onChanged: (val) => _formData[field.key] = val,
             ),
           ),
@@ -782,15 +799,32 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> with SingleTickerPr
               decoration: InputDecoration(
                 labelText: field.label,
                 labelStyle: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFFB0B0B0),
-                  letterSpacing: 0.5,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFFFFFFFF),
+                  letterSpacing: 0.8,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(0, 1),
+                      blurRadius: 4.0,
+                      color: Color(0x88000000),
+                    ),
+                  ],
                 ),
                 floatingLabelStyle: const TextStyle(
-                  color: Colors.deepPurpleAccent,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 19,
+                  color: Color(0xFFFFFFFF),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(0, 1),
+                      blurRadius: 4.0,
+                      color: Color(0x88000000),
+                    ),
+                  ],
                 ),
+                floatingLabelBehavior: FloatingLabelBehavior.always,
                 contentPadding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -801,7 +835,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> with SingleTickerPr
                   borderSide: const BorderSide(color: Colors.deepPurpleAccent, width: 2.5),
                 ),
               ),
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700),
               onChanged: (val) => _formData[field.key] = val,
             ),
           ),
@@ -832,20 +866,37 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> with SingleTickerPr
               decoration: InputDecoration(
                 labelText: field.label,
                 labelStyle: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFFB0B0B0),
-                  letterSpacing: 0.5,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFFFFFFFF),
+                  letterSpacing: 0.8,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(0, 1),
+                      blurRadius: 4.0,
+                      color: Color(0x88000000),
+                    ),
+                  ],
                 ),
                 floatingLabelStyle: const TextStyle(
-                  color: Colors.deepPurpleAccent,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 19,
+                  color: Color(0xFFFFFFFF),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(0, 1),
+                      blurRadius: 4.0,
+                      color: Color(0x88000000),
+                    ),
+                  ],
                 ),
+                floatingLabelBehavior: FloatingLabelBehavior.always,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 20.0),
+                contentPadding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
@@ -855,7 +906,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> with SingleTickerPr
                   items: field.options!.map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
-                      child: Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                      child: Text(value, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700)),
                     );
                   }).toList(),
                   onChanged: (val) => setState(() => _formData[field.key] = val),
@@ -890,9 +941,17 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> with SingleTickerPr
               title: Text(
                 field.label,
                 style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.3,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFFFFFFFF),
+                  letterSpacing: 0.8,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(0, 1),
+                      blurRadius: 4.0,
+                      color: Color(0x88000000),
+                    ),
+                  ],
                 ),
               ),
               value: _formData[field.key] ?? false,
@@ -931,10 +990,17 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> with SingleTickerPr
                   Text(
                     field.label,
                     style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFB0B0B0),
-                      letterSpacing: 0.5,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFFFFFFF),
+                      letterSpacing: 0.8,
+                      shadows: [
+                        Shadow(
+                          offset: Offset(0, 1),
+                          blurRadius: 4.0,
+                          color: Color(0x88000000),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1551,8 +1617,7 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> with SingleTickerPr
   }
 
   void _loadYouTubeVideo(String videoId) {
-    if (_ytController == null) {
-      _ytController = YoutubePlayerController(
+    _ytController ??= YoutubePlayerController(
         params: const YoutubePlayerParams(
           showFullscreenButton: true,
           strictRelatedVideos: true,
@@ -1560,7 +1625,6 @@ class _ScoutingHomePageState extends State<ScoutingHomePage> with SingleTickerPr
           playsInline: true,
         ),
       );
-    }
     _currentVideoId = videoId;
     _ytController!.loadVideoById(videoId: videoId);
     _ytController!.playVideo();
