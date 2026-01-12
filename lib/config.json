@@ -3,43 +3,47 @@
     {
       "title": "PREMATCH",
       "fields": [
-        {"type": "text", "label": "SCOUTER INITIALS", "key": "scouterInitials"},
+        {"type": "text", "label": "SCOUTER NAME", "key": "scouterName"},
         {"type": "number", "label": "MATCH NUMBER", "key": "matchNumber"},
         {"type": "dropdown", "label": "ROBOT", "key": "robot", "options": ["Blue 1", "Blue 2", "Blue 3", "Red 1", "Red 2", "Red 3"]},
         {"type": "switch", "label": "FUTURE ALLIANCE IN QUALY?", "key": "futureAlliance"},
         {"type": "number", "label": "TEAM NUMBER", "key": "teamNumber"},
-        {"type": "dropdown", "label": "STARTING POSITION", "key": "startingPosition", "options": ["Processor Side", "Middle", "No-Processor Side"]},
+        {"type": "dropdown", "label": "STARTING POSITION", "key": "startingPosition", "options": ["Outpost Side", "Middle", "Depot Side"]},
         {"type": "switch", "label": "NO SHOW", "key": "noShow"}
       ]
     },
     {
       "title": "AUTONOMOUS",
       "fields": [
-        {"type": "switch", "label": "MOVED?", "key": "moved"},
-        {"type": "counter", "label": "CORAL L1 SCORED", "key": "coralL1Auto"},
-        {"type": "counter", "label": "CORAL L2 SCORED", "key": "coralL2Auto"},
-        {"type": "counter", "label": "CORAL L3 SCORED", "key": "coralL3Auto"},
-        {"type": "counter", "label": "CORAL L4 SCORED", "key": "coralL4Auto"},
-        {"type": "counter", "label": "BARGE ALGAE SCORED", "key": "bargeAlgaeAuto"},
-        {"type": "counter", "label": "PROCESSOR ALGAE SCORED", "key": "processorAlgaeAuto"},
-        {"type": "switch", "label": "DISLODGED ALGAE?", "key": "dislodgedAlgaeAuto"},
-        {"type": "counter", "label": "AUTO FOUL", "key": "autoFoul"}
+        {"type": "switch", "label": "MOVED?", "key": "autonMoved"},
+        {"type": "switch", "label": "8 FUEL AUTO", "key": "8fuelAuton"},
+        {"type": "counter", "label": "MISSED?", "key": "missedAutonCounter"},
+        {"type": "switch", "label": "CROSSED INTO NEUTRAL ZONE?", "key": "crossedIntoNeutralZoneAuton"},
+        {"type": "dropdown", "label": "CYCLE TYPE", "key": "autonCycleType", "options": ["Outpost", "Depot", "Neutral", "All", "None"]},
+        {"type": "counter", "label": "HP SCORED?", "key": "hpScoredAuton"},
+        {"type": "switch", "label": "CLIMBS?", "key": "climbAuton"},
+        {"type": "dropdown", "label": "CLIMB POSITION?", "key": "climbPosition", "options": ["Left", "Middle", "Right"]},
+        {"type": "switch", "label": "DECENDS?", "key": "descendsAuton"},
+        {"type": "switch", "label": "CROSSES BUMP?", "key": "bumpAuton"},
+        {"type": "switch", "label": "CROSSES TRENCH?", "key": "trenchAuton"}
       ]
     },
     {
       "title": "TELEOP",
       "fields": [
-        {"type": "switch", "label": "DISLODGED ALGAE?", "key": "dislodgedAlgaeTeleop"},
-        {"type": "dropdown", "label": "PICKUP LOCATION", "key": "pickupLocation", "options": ["Ground", "Source", "Both"]},
-        {"type": "counter", "label": "CORAL L1 SCORED", "key": "coralL1Teleop"},
-        {"type": "counter", "label": "CORAL L2 SCORED", "key": "coralL2Teleop"},
-        {"type": "counter", "label": "CORAL L3 SCORED", "key": "coralL3Teleop"},
-        {"type": "counter", "label": "CORAL L4 SCORED", "key": "coralL4Teleop"},
-        {"type": "counter", "label": "BARGE ALGAE SCORED", "key": "bargeAlgaeTeleop"},
-        {"type": "counter", "label": "PROCESSOR ALGAE SCORED", "key": "processorAlgaeTeleop"},
-        {"type": "switch", "label": "CROSSED FIELD/PLAYED DEFENSE?", "key": "crossedFieldDefense"},
+        {"type": "dropdown", "label": "STORAGE CAPABILITY", "key": "storageCapability", "options": ["Tons", "Many", "Some", "Few", "One"]},
+        {"type": "dropdown", "label": "SHOOT CAPABILITY", "key": "shootCapability", "options": ["All", "Many", "Some", "Few", "None"]},
+        {"type": "counter", "label": "MISSED?", "key": "missedTeleopCounter"},
+        {"type": "switch", "label": "CROSSED INTO NEUTRAL ZONE?", "key": "crossedIntoNeutralZoneTeleop"},
+        {"type": "dropdown", "label": "CYCLE TYPE", "key": "teleopCycleType", "options": ["Outpost", "Depot", "Neutral", "All", "None"]},
+        {"type": "switch", "label": "CROSSES BUMP?", "key": "bumpTeleop"},
+        {"type": "switch", "label": "CROSSES TRENCH?", "key": "trenchTeleop"},
+        {"type": "switch", "label": "PLAYED DEFENSE? (OWN FIELD)", "key": "ownFieldDefense"},
+        {"type": "switch", "label": "PLAYED ATTACK? (OPPOSING FIELD)", "key": "opposingFieldAttack"},
+        {"type": "counter", "label": "HP SCORED?", "key": "hpScoredTeleop"},
         {"type": "switch", "label": "TIPPED/FELL OVER?", "key": "tippedFell"},
-        {"type": "counter", "label": "TOUCHED OPPOSING CAGE", "key": "touchedOpposingCage"},
+        {"type": "counter", "label": "TOUCHED OPPOSING TOWER", "key": "touchedOpposingTowerTeleop"},
+        {"type": "counter", "label": "TOUCHED OPPOSING HUB", "key": "touchedOpposingHubTeleop"},
         {"type": "switch", "label": "DIED?", "key": "died"}
       ]
     },
